@@ -1,6 +1,12 @@
 services:
   odysseus:
-    build: .
+    build:
+      context: .
+      # DNS resolution inside the build container hangs indefinitely on this
+      # host without this (same fix already applied in the sibling
+      # Homeserver-Jarvis project's Dockerfiles) — npm ci/pip installs never
+      # reach the registry otherwise.
+      network: host
     ports:
       - "${APP_BIND:-127.0.0.1}:${APP_PORT:-7000}:7000"
     volumes:
