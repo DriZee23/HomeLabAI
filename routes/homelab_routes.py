@@ -15,12 +15,14 @@ from fastapi import APIRouter, HTTPException, Request
 
 from core.middleware import require_admin
 from services.homelab.docker_client import DockerHomelabClient, DockerAccessError
+from services.homelab.unraid_client import UnraidClient, UnraidAccessError
 
 logger = logging.getLogger(__name__)
 
 # Reused across requests — see src/agent_tools/homelab_tools.py for the same
 # reuse rationale (docker.DockerClient is safe to share, lazily connects).
 _docker_client = DockerHomelabClient()
+_unraid_client = UnraidClient()
 
 
 def setup_homelab_routes() -> APIRouter:
@@ -63,5 +65,21 @@ def setup_homelab_routes() -> APIRouter:
         require_admin(request)
         from src.host_metrics import read_host_metrics
         return read_host_metrics()
+
+    @router.get("/unraid/array")
+    async def unraid_array_status(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return _unraid_client.array_status()
+        except UnraidAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/unraid/disks")
+    async def unraid_disk_health(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"disks": _unraid_client.disk_health()}
+        except UnraidAccessError as e:
+            raise HTTPException(503, str(e))
 
     return router

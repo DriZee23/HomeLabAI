@@ -1365,6 +1365,30 @@ FUNCTION_TOOL_SCHEMAS = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "unraid_array_status",
+            "description": "Get the Unraid array's current state (started/stopped), disk count, and total/used/free capacity. Requires the Unraid API to be configured (UNRAID_API_URL/UNRAID_API_KEY); if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "unraid_disk_health",
+            "description": "List each disk in the Unraid array with its health status, size, and temperature. Requires the Unraid API to be configured (UNRAID_API_URL/UNRAID_API_KEY); if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
 ]
 
 

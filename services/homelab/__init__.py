@@ -7,8 +7,11 @@ into the host it runs on.
 """
 
 from .docker_client import DockerHomelabClient, DockerAccessError
+from .unraid_client import UnraidClient, UnraidAccessError
 
 __all__ = [
     "DockerHomelabClient",
     "DockerAccessError",
+    "UnraidClient",
+    "UnraidAccessError",
 ]

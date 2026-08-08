@@ -130,6 +130,8 @@ PLAN_MODE_READONLY_TOOLS = {
     "docker_container_logs",
     "docker_inspect_container",
     "system_metrics",
+    "unraid_array_status",
+    "unraid_disk_health",
 }
 
 

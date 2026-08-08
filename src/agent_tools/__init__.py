@@ -37,6 +37,7 @@ from .homelab_tools import (
     DockerListContainersTool, DockerContainerStatsTool,
     DockerContainerLogsTool, DockerInspectContainerTool, SystemMetricsTool,
 )
+from .unraid_tools import UnraidArrayStatusTool, UnraidDiskHealthTool
 
 TOOL_HANDLERS = {
     "bash": BashTool().execute,
@@ -72,6 +73,8 @@ TOOL_HANDLERS = {
     "docker_container_logs": DockerContainerLogsTool().execute,
     "docker_inspect_container": DockerInspectContainerTool().execute,
     "system_metrics": SystemMetricsTool().execute,
+    "unraid_array_status": UnraidArrayStatusTool().execute,
+    "unraid_disk_health": UnraidDiskHealthTool().execute,
 }
 # Config/integration admin tools (manage_endpoints/mcp/webhooks/tokens/settings).
 TOOL_HANDLERS.update(ADMIN_TOOL_HANDLERS)
@@ -124,7 +127,9 @@ TOOL_TAGS = {"bash", "python", "web_search", "web_fetch", "read_file", "write_fi
              # Homelab read tools (Docker host visibility + system metrics).
              "docker_list_containers", "docker_container_stats",
              "docker_container_logs", "docker_inspect_container",
-             "system_metrics"} | BUILTIN_EMAIL_TOOLS
+             "system_metrics",
+             # Unraid array read tools.
+             "unraid_array_status", "unraid_disk_health"} | BUILTIN_EMAIL_TOOLS
 
 ToolBlock = namedtuple("ToolBlock", ["tool_type", "content"])
 
