@@ -34,3 +34,10 @@ PyMuPDF
 # [all]/Azure/audio extras (cloud + heavy). Pinned to a release >30 days old per
 # the dependency-age discussion in issue #485.
 markitdown[docx,pptx,xlsx,xls]==0.1.6
+
+# Docker host control for the homelab tools (docker_list_containers,
+# docker_container_stats/logs/inspect_container, routes/homelab_routes.py).
+# Only useful when ODYSSEUS_ENABLE_HOST_DOCKER=true and the host Docker
+# socket is mounted (docker/host-docker.yml) — see src/host_docker_access.py
+# for why that's an explicit, high-trust opt-in rather than the default.
+docker

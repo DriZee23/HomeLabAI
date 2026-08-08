@@ -33,6 +33,10 @@ from .admin_tools import (
     do_manage_endpoints, do_manage_mcp, do_manage_webhooks,
     do_manage_tokens, do_manage_settings,
 )
+from .homelab_tools import (
+    DockerListContainersTool, DockerContainerStatsTool,
+    DockerContainerLogsTool, DockerInspectContainerTool, SystemMetricsTool,
+)
 
 TOOL_HANDLERS = {
     "bash": BashTool().execute,
@@ -63,6 +67,11 @@ TOOL_HANDLERS = {
     "list_sessions": ListSessionsTool().execute,
     "send_to_session": SendToSessionTool().execute,
     "manage_session": ManageSessionTool().execute,
+    "docker_list_containers": DockerListContainersTool().execute,
+    "docker_container_stats": DockerContainerStatsTool().execute,
+    "docker_container_logs": DockerContainerLogsTool().execute,
+    "docker_inspect_container": DockerInspectContainerTool().execute,
+    "system_metrics": SystemMetricsTool().execute,
 }
 # Config/integration admin tools (manage_endpoints/mcp/webhooks/tokens/settings).
 TOOL_HANDLERS.update(ADMIN_TOOL_HANDLERS)
@@ -111,7 +120,11 @@ TOOL_TAGS = {"bash", "python", "web_search", "web_fetch", "read_file", "write_fi
              # Generic loopback to any UI-button endpoint (cookbook,
              # gallery, email folders, etc.) — agent uses this when
              # there's no named tool wrapper for the action.
-             "app_api"} | BUILTIN_EMAIL_TOOLS
+             "app_api",
+             # Homelab read tools (Docker host visibility + system metrics).
+             "docker_list_containers", "docker_container_stats",
+             "docker_container_logs", "docker_inspect_container",
+             "system_metrics"} | BUILTIN_EMAIL_TOOLS
 
 ToolBlock = namedtuple("ToolBlock", ["tool_type", "content"])
 

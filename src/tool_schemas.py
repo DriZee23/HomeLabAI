@@ -26,6 +26,9 @@ _REQUIRED_NATIVE_TOOL_ARGS = {
     "write_file": ("path",),
     "edit_file": ("path",),
     "apply_patch": ("patch_text", "patchText", "patch"),
+    "docker_container_stats": ("name",),
+    "docker_container_logs": ("name",),
+    "docker_inspect_container": ("name",),
 }
 
 # ---------------------------------------------------------------------------
@@ -1290,6 +1293,75 @@ FUNCTION_TOOL_SCHEMAS = [
                     "job_id": {"type": "string", "description": "Background job id (required for output/kill; from action='list')"},
                 },
                 "required": ["action"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "docker_list_containers",
+            "description": "List Docker containers running on the homelab host (name, image, status, ports), including stopped ones by default. Requires host Docker access to be enabled; if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "all": {"type": "boolean", "description": "Include stopped containers as well as running ones (default true)"}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "docker_container_stats",
+            "description": "Get live CPU%, memory, and network/disk I/O for one Docker container on the homelab host. Requires host Docker access to be enabled; if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Container name or id, from docker_list_containers"}
+                },
+                "required": ["name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "docker_container_logs",
+            "description": "Get the recent log output (stdout+stderr) of one Docker container on the homelab host. Requires host Docker access to be enabled; if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Container name or id, from docker_list_containers"},
+                    "tail": {"type": "integer", "description": "Number of trailing log lines to return (default 100, max 1000)"}
+                },
+                "required": ["name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "docker_inspect_container",
+            "description": "Get detailed configuration for one Docker container on the homelab host (image, command, mounts, network, restart policy, health, environment variables with secrets redacted). Requires host Docker access to be enabled; if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Container name or id, from docker_list_containers"}
+                },
+                "required": ["name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "system_metrics",
+            "description": "Get approximate host-level CPU%, memory, disk usage (for the Odysseus data partition), and uptime for the homelab server. Linux-only; returns a clear 'not supported' message on other platforms. Values are best-effort reads of /proc, not guaranteed-exact host figures — say so if reporting them.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
             }
         }
     },

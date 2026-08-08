@@ -703,6 +703,10 @@ app.include_router(setup_preset_routes(preset_manager))
 from routes.diagnostics_routes import setup_diagnostics_routes
 app.include_router(setup_diagnostics_routes(rag_manager, rag_available, research_handler, memory_vector))
 
+# Homelab (Docker + system metrics, read-only)
+from routes.homelab_routes import setup_homelab_routes
+app.include_router(setup_homelab_routes())
+
 # Cleanup
 from routes.cleanup.cleanup_routes import setup_cleanup_routes
 app.include_router(setup_cleanup_routes(session_manager))

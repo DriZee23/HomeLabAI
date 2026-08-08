@@ -123,6 +123,13 @@ PLAN_MODE_READONLY_TOOLS = {
     "resolve_contact",
     "chat_with_model",
     "ask_teacher",
+    # Homelab read tools (Docker host visibility + system metrics) — pure
+    # reads, safe under plan mode's read-only allowlist.
+    "docker_list_containers",
+    "docker_container_stats",
+    "docker_container_logs",
+    "docker_inspect_container",
+    "system_metrics",
 }
 
 
