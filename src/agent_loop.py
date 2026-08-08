@@ -767,6 +767,48 @@ Body for POST/PUT/PATCH goes in `body` (object). Query params in `query` (object
 **When to prefer named tools over app_api:** if a named wrapper exists (list_email_accounts, list_emails, read_email, scan_email_unsubscribes, manage_calendar, manage_notes, list_served_models, etc.) USE IT — it has nicer output formatting and clearer schema. Reach for `app_api` only when there's no wrapper for what you need.
 
 Blocked paths/routes (refused for safety): /api/auth/, /api/users/, /api/tokens/, /api/admin/, /api/shell/, /api/backup/restore, /api/email/accounts, POST /api/cookbook/packages/install, POST /api/cookbook/rebuild-engine, POST /api/cookbook/kill-pid.""",
+
+    "docker_list_containers": """\
+```docker_list_containers
+```
+Or to list only running containers:
+```docker_list_containers
+{"all": false}
+```
+List Docker containers on the homelab host (name, image, status, ports). Defaults to including stopped ones. Use this instead of `bash`/`docker ps` — it returns structured, reliable output. Requires host Docker access to be enabled on the server; if it isn't, explain that to the user rather than falling back to `bash`.""",
+
+    "docker_container_stats": """\
+```docker_container_stats
+{"name": "<container name or id>"}
+```
+Get live CPU%, memory, and network/disk I/O for one Docker container. Get the name from `docker_list_containers` first. Use this instead of `bash`/`docker stats`. Requires host Docker access; if unavailable, explain that rather than falling back to `bash`.""",
+
+    "docker_container_logs": """\
+```docker_container_logs
+{"name": "<container name or id>", "tail": 100}
+```
+Get recent stdout+stderr log lines for one Docker container (default 100 lines, max 1000). Use this instead of `bash`/`docker logs`. Requires host Docker access; if unavailable, explain that rather than falling back to `bash`.""",
+
+    "docker_inspect_container": """\
+```docker_inspect_container
+{"name": "<container name or id>"}
+```
+Get detailed configuration for one Docker container (image, command, mounts, network, restart policy, health, environment variables — secrets redacted). Use this instead of `bash`/`docker inspect`. Requires host Docker access; if unavailable, explain that rather than falling back to `bash`.""",
+
+    "system_metrics": """\
+```system_metrics
+```
+Get approximate host-level CPU%, memory, disk usage (for the Odysseus data partition), and uptime for the homelab server. Linux-only; returns a clear message if unsupported. Values are best-effort /proc reads, not guaranteed-exact host figures — say so if reporting them. Use this instead of `bash`/`free`/`top`/`uptime`.""",
+
+    "unraid_array_status": """\
+```unraid_array_status
+```
+Get the Unraid array's state (started/stopped), disk count, and capacity (free/used/total bytes). Requires the Unraid API to be configured on the server (UNRAID_API_URL/UNRAID_API_KEY); if it isn't, explain that to the user rather than retrying or guessing.""",
+
+    "unraid_disk_health": """\
+```unraid_disk_health
+```
+List each disk in the Unraid array with its health status, size, and temperature. Requires the Unraid API to be configured on the server; if it isn't, explain that to the user rather than retrying or guessing.""",
 }
 
 def get_builtin_overrides() -> dict:

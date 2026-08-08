@@ -140,6 +140,13 @@ BUILTIN_TOOL_DESCRIPTIONS: Dict[str, str] = {
     "edit_image": "Edit an image in the gallery: upscale (increase resolution), remove background (rembg), inpaint (fill selected area), or harmonize (blend edits). Specify image ID and action.",
     "trigger_research": "Start a deep research job on any topic — appears in the Deep Research sidebar, streams progress, produces a detailed report. Use for 'research X', 'look into Y', 'do deep research on Z', 'investigate'. NOT a scheduled task — it runs now and surfaces in the sidebar.",
     "manage_bg_jobs": "Inspect and control detached background `bash` jobs (the ones started with a `#!bg` marker). action='list' shows this chat's jobs (id/status/age/command); action='output' returns a job's captured output so far (check on a long-running job, or re-read a finished one); action='kill' stops a runaway job by id. Use for 'is the background job done', 'check on that job', 'show the build output', 'kill the background job', 'stop the bg task'. output/kill need a job_id from list.",
+    "docker_list_containers": "List Docker containers on the homelab server host (name, image, status, ports), including stopped ones by default. Use for 'list my docker containers', 'what's running', 'show containers'. Use this instead of bash/docker ps.",
+    "docker_container_stats": "Get live CPU%, memory, and network/disk I/O for one Docker container on the homelab host. Get the container name from docker_list_containers first. Use for 'CPU/memory usage of X container'. Use this instead of bash/docker stats.",
+    "docker_container_logs": "Get recent stdout+stderr log lines for one Docker container on the homelab host (default 100 lines, max 1000). Use for 'show me the logs for X', 'last N log lines of X'. Use this instead of bash/docker logs.",
+    "docker_inspect_container": "Get detailed configuration for one Docker container on the homelab host: image, command, mounts, network, restart policy, health, environment variables (secrets redacted). Use for 'inspect X container', 'what env vars does X have'. Use this instead of bash/docker inspect.",
+    "system_metrics": "Get approximate host-level CPU%, memory, disk usage (for the Odysseus data partition), and uptime for the homelab server. Use for 'server CPU/memory/uptime', 'how's the host doing'. Linux-only; best-effort /proc reads, not exact host figures. Use this instead of bash/free/top/uptime.",
+    "unraid_array_status": "Get the Unraid array's state (started/stopped), disk count, and capacity (free/used/total). Use for 'array status', 'how much storage do I have', 'is the array running'. Requires the Unraid API to be configured on the server.",
+    "unraid_disk_health": "List each disk in the Unraid array with health status, size, and temperature. Use for 'disk health', 'are my disks ok', 'disk temperatures'. Requires the Unraid API to be configured on the server.",
 }
 
 
@@ -513,6 +520,25 @@ class ToolIndex:
         frozenset({"write a", "create a doc", "draft", "compose", "poem", "story",
                    "essay", "outline", "letter"}):
             {"create_document", "edit_document", "update_document"},
+        # Homelab Docker container visibility (distinct from Cookbook's model
+        # servers above — this is the host's general container list/stats/logs).
+        frozenset({"docker container", "docker containers", "my containers",
+                   "list containers", "container logs", "container stats",
+                   "inspect container", "docker ps", "container status"}):
+            {"docker_list_containers", "docker_container_stats",
+             "docker_container_logs", "docker_inspect_container"},
+        # Homelab host system metrics (CPU/RAM/disk/uptime of the server
+        # itself, not a specific container or model).
+        frozenset({"server cpu", "server memory", "host cpu", "host memory",
+                   "system metrics", "server uptime", "host uptime",
+                   "how's the server", "hows the server", "how's the host",
+                   "hows the host"}):
+            {"system_metrics"},
+        # Unraid array status / disk health.
+        frozenset({"unraid array", "array status", "storage array", "my array",
+                   "array capacity", "disk health", "disk temperature",
+                   "disk temperatures", "are my disks", "array state"}):
+            {"unraid_array_status", "unraid_disk_health"},
     }
 
     def get_tools_for_query(
