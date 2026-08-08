@@ -39,6 +39,13 @@ from .homelab_tools import (
 )
 from .unraid_tools import UnraidArrayStatusTool, UnraidDiskHealthTool
 from .media_tools import RadarrQueueTool, RadarrHistoryTool, SonarrQueueTool, SonarrHistoryTool
+from .jellyfin_tools import (
+    JellyfinSessionsTool, JellyfinRecentlyAddedTool, JellyfinContinueWatchingTool,
+    JellyfinSearchTool, JellyfinLibraryStatsTool,
+)
+from .media_extras_tools import (
+    SabnzbdQueueTool, QbittorrentQueueTool, BazarrMissingSubtitlesTool, ProwlarrIndexerStatusTool,
+)
 
 TOOL_HANDLERS = {
     "bash": BashTool().execute,
@@ -80,6 +87,15 @@ TOOL_HANDLERS = {
     "radarr_history": RadarrHistoryTool().execute,
     "sonarr_queue": SonarrQueueTool().execute,
     "sonarr_history": SonarrHistoryTool().execute,
+    "jellyfin_sessions": JellyfinSessionsTool().execute,
+    "jellyfin_recently_added": JellyfinRecentlyAddedTool().execute,
+    "jellyfin_continue_watching": JellyfinContinueWatchingTool().execute,
+    "jellyfin_search": JellyfinSearchTool().execute,
+    "jellyfin_library_stats": JellyfinLibraryStatsTool().execute,
+    "sabnzbd_queue": SabnzbdQueueTool().execute,
+    "qbittorrent_queue": QbittorrentQueueTool().execute,
+    "bazarr_missing_subtitles": BazarrMissingSubtitlesTool().execute,
+    "prowlarr_indexer_status": ProwlarrIndexerStatusTool().execute,
 }
 # Config/integration admin tools (manage_endpoints/mcp/webhooks/tokens/settings).
 TOOL_HANDLERS.update(ADMIN_TOOL_HANDLERS)
@@ -137,7 +153,13 @@ TOOL_TAGS = {"bash", "python", "web_search", "web_fetch", "read_file", "write_fi
              "unraid_array_status", "unraid_disk_health",
              # Media queue read tools (Radarr/Sonarr).
              "radarr_queue", "radarr_history",
-             "sonarr_queue", "sonarr_history"} | BUILTIN_EMAIL_TOOLS
+             "sonarr_queue", "sonarr_history",
+             # Jellyfin + rest of the media stack read tools.
+             "jellyfin_sessions", "jellyfin_recently_added",
+             "jellyfin_continue_watching", "jellyfin_search",
+             "jellyfin_library_stats", "sabnzbd_queue",
+             "qbittorrent_queue", "bazarr_missing_subtitles",
+             "prowlarr_indexer_status"} | BUILTIN_EMAIL_TOOLS
 
 ToolBlock = namedtuple("ToolBlock", ["tool_type", "content"])
 

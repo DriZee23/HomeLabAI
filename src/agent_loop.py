@@ -829,6 +829,52 @@ List Sonarr's current TV episode download queue (title, status, size, download c
 ```sonarr_history
 ```
 List Sonarr's recent TV episode history (grabbed/imported/failed events). Use alongside `sonarr_queue` to answer "why didn't X download". Requires SONARR_URL/SONARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "jellyfin_sessions": """\
+```jellyfin_sessions
+```
+List active Jellyfin playback sessions (who's watching what, on which device). Requires JELLYFIN_URL/JELLYFIN_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "jellyfin_recently_added": """\
+```jellyfin_recently_added
+```
+List recently added items in the Jellyfin library. Requires JELLYFIN_URL/JELLYFIN_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "jellyfin_continue_watching": """\
+```jellyfin_continue_watching
+```
+List items in progress ("continue watching") in Jellyfin. Requires JELLYFIN_URL/JELLYFIN_API_KEY (ideally also JELLYFIN_USER_ID for personalized results); if unavailable, explain that rather than guessing.""",
+
+    "jellyfin_search": """\
+```jellyfin_search
+{"query": "<title or partial title>"}
+```
+Search the Jellyfin media library by title. Requires JELLYFIN_URL/JELLYFIN_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "jellyfin_library_stats": """\
+```jellyfin_library_stats
+```
+Get item counts (movies, series, episodes) in the Jellyfin library. Requires JELLYFIN_URL/JELLYFIN_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "sabnzbd_queue": """\
+```sabnzbd_queue
+```
+List SABnzbd's current download queue (job name, status, progress, time left). Requires SABNZBD_URL/SABNZBD_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "qbittorrent_queue": """\
+```qbittorrent_queue
+```
+List qBittorrent's current torrent queue (name, state, progress, size, download speed). Requires QBITTORRENT_URL/QBITTORRENT_USERNAME/QBITTORRENT_PASSWORD; if unavailable, explain that rather than guessing.""",
+
+    "bazarr_missing_subtitles": """\
+```bazarr_missing_subtitles
+```
+List movies/episodes with missing subtitles per Bazarr. Requires BAZARR_URL/BAZARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "prowlarr_indexer_status": """\
+```prowlarr_indexer_status
+```
+List Prowlarr's configured indexers and whether each is enabled. Requires PROWLARR_URL/PROWLARR_API_KEY; if unavailable, explain that rather than guessing.""",
 }
 
 def get_builtin_overrides() -> dict:

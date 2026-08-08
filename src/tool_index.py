@@ -151,6 +151,15 @@ BUILTIN_TOOL_DESCRIPTIONS: Dict[str, str] = {
     "radarr_history": "List Radarr's recent movie history (grabbed/imported/failed events). Use for 'why didn't X download', 'radarr history', 'did the movie import' alongside radarr_queue. Requires RADARR_URL/RADARR_API_KEY.",
     "sonarr_queue": "List Sonarr's current TV episode download queue: title, status, size, download client, errors. Use for 'what's downloading', 'sonarr queue', 'episode download status'. Requires SONARR_URL/SONARR_API_KEY to be configured.",
     "sonarr_history": "List Sonarr's recent TV episode history (grabbed/imported/failed events). Use for 'why didn't X download', 'sonarr history', 'did the episode import' alongside sonarr_queue. Requires SONARR_URL/SONARR_API_KEY.",
+    "jellyfin_sessions": "List active Jellyfin playback sessions: who's watching what, on which device. Use for 'who's watching', 'jellyfin sessions', 'what's playing'. Requires JELLYFIN_URL/JELLYFIN_API_KEY.",
+    "jellyfin_recently_added": "List recently added items in the Jellyfin library. Use for 'recently added', 'what's new in jellyfin', 'new movies/shows'. Requires JELLYFIN_URL/JELLYFIN_API_KEY.",
+    "jellyfin_continue_watching": "List items in progress ('continue watching') in Jellyfin. Use for 'continue watching', 'what am I watching', 'in progress'. Requires JELLYFIN_URL/JELLYFIN_API_KEY.",
+    "jellyfin_search": "Search the Jellyfin media library by title. Use for 'find X in jellyfin', 'do I have X', 'search my library'. Requires JELLYFIN_URL/JELLYFIN_API_KEY.",
+    "jellyfin_library_stats": "Get item counts (movies, series, episodes) in the Jellyfin library. Use for 'how many movies do I have', 'library size', 'jellyfin stats'. Requires JELLYFIN_URL/JELLYFIN_API_KEY.",
+    "sabnzbd_queue": "List SABnzbd's current download queue: job name, status, progress, time left. Use for 'sabnzbd queue', 'usenet downloads', 'nzb queue'. Requires SABNZBD_URL/SABNZBD_API_KEY.",
+    "qbittorrent_queue": "List qBittorrent's current torrent queue: name, state, progress, size, speed. Use for 'qbittorrent queue', 'torrent downloads', 'what's torrenting'. Requires QBITTORRENT_URL/QBITTORRENT_USERNAME/QBITTORRENT_PASSWORD.",
+    "bazarr_missing_subtitles": "List movies/episodes with missing subtitles per Bazarr. Use for 'missing subtitles', 'what needs subtitles', 'bazarr wanted'. Requires BAZARR_URL/BAZARR_API_KEY.",
+    "prowlarr_indexer_status": "List Prowlarr's configured indexers and whether each is enabled. Use for 'indexer status', 'my indexers', 'prowlarr'. Requires PROWLARR_URL/PROWLARR_API_KEY.",
 }
 
 
@@ -551,6 +560,19 @@ class ToolIndex:
                    "download history", "movie download", "episode download",
                    "did it download", "is it downloading"}):
             {"radarr_queue", "radarr_history", "sonarr_queue", "sonarr_history"},
+        frozenset({"jellyfin", "who's watching", "whos watching",
+                   "continue watching", "recently added", "my library",
+                   "media library", "what's playing", "whats playing"}):
+            {"jellyfin_sessions", "jellyfin_recently_added",
+             "jellyfin_continue_watching", "jellyfin_search", "jellyfin_library_stats"},
+        frozenset({"sabnzbd", "usenet", "nzb"}):
+            {"sabnzbd_queue"},
+        frozenset({"qbittorrent", "torrent", "torrents", "torrenting"}):
+            {"qbittorrent_queue"},
+        frozenset({"bazarr", "missing subtitles", "subtitle", "subtitles"}):
+            {"bazarr_missing_subtitles"},
+        frozenset({"prowlarr", "indexer", "indexers", "indexer status"}):
+            {"prowlarr_indexer_status"},
     }
 
     def get_tools_for_query(

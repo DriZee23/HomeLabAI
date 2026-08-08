@@ -29,6 +29,7 @@ _REQUIRED_NATIVE_TOOL_ARGS = {
     "docker_container_stats": ("name",),
     "docker_container_logs": ("name",),
     "docker_inspect_container": ("name",),
+    "jellyfin_search": ("query",),
 }
 
 # ---------------------------------------------------------------------------
@@ -1435,6 +1436,82 @@ FUNCTION_TOOL_SCHEMAS = [
                 "properties": {},
                 "required": []
             }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "jellyfin_sessions",
+            "description": "List active Jellyfin playback sessions (who's watching what, on which device). Requires JELLYFIN_URL/JELLYFIN_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "jellyfin_recently_added",
+            "description": "List recently added items in the Jellyfin library. Requires JELLYFIN_URL/JELLYFIN_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "jellyfin_continue_watching",
+            "description": "List items in progress ('continue watching') in Jellyfin. Requires JELLYFIN_URL/JELLYFIN_API_KEY (and ideally JELLYFIN_USER_ID for personalized results); if not configured, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "jellyfin_search",
+            "description": "Search the Jellyfin media library by title. Requires JELLYFIN_URL/JELLYFIN_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string", "description": "Title or partial title to search for"}},
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "jellyfin_library_stats",
+            "description": "Get item counts (movies, series, episodes) in the Jellyfin library. Requires JELLYFIN_URL/JELLYFIN_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sabnzbd_queue",
+            "description": "List SABnzbd's current download queue (job name, status, progress, time left). Requires SABNZBD_URL/SABNZBD_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "qbittorrent_queue",
+            "description": "List qBittorrent's current torrent queue (name, state, progress, size, download speed). Requires QBITTORRENT_URL/QBITTORRENT_USERNAME/QBITTORRENT_PASSWORD to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "bazarr_missing_subtitles",
+            "description": "List movies/episodes with missing subtitles per Bazarr. Requires BAZARR_URL/BAZARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "prowlarr_indexer_status",
+            "description": "List Prowlarr's configured indexers and whether each is enabled. Requires PROWLARR_URL/PROWLARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {"type": "object", "properties": {}, "required": []}
         }
     },
 ]

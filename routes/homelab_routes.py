@@ -18,6 +18,11 @@ from core.middleware import require_admin
 from services.homelab.docker_client import DockerHomelabClient, DockerAccessError
 from services.homelab.unraid_client import UnraidClient, UnraidAccessError
 from services.homelab.arr_client import RadarrClient, SonarrClient, ArrAccessError
+from services.homelab.prowlarr_client import ProwlarrClient
+from services.homelab.jellyfin_client import JellyfinClient, JellyfinAccessError
+from services.homelab.sabnzbd_client import SabnzbdClient, SabnzbdAccessError
+from services.homelab.qbittorrent_client import QbittorrentClient, QbittorrentAccessError
+from services.homelab.bazarr_client import BazarrClient, BazarrAccessError
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +32,11 @@ _docker_client = DockerHomelabClient()
 _unraid_client = UnraidClient()
 _radarr_client = RadarrClient()
 _sonarr_client = SonarrClient()
+_prowlarr_client = ProwlarrClient()
+_jellyfin_client = JellyfinClient()
+_sabnzbd_client = SabnzbdClient()
+_qbittorrent_client = QbittorrentClient()
+_bazarr_client = BazarrClient()
 
 
 def setup_homelab_routes() -> APIRouter:
@@ -116,6 +126,78 @@ def setup_homelab_routes() -> APIRouter:
         try:
             return {"history": _sonarr_client.history()}
         except ArrAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/prowlarr/indexers")
+    async def prowlarr_indexers(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"indexers": _prowlarr_client.indexer_status()}
+        except ArrAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/jellyfin/sessions")
+    async def jellyfin_sessions(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"sessions": _jellyfin_client.sessions()}
+        except JellyfinAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/jellyfin/recently-added")
+    async def jellyfin_recently_added(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"items": _jellyfin_client.recently_added()}
+        except JellyfinAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/jellyfin/continue-watching")
+    async def jellyfin_continue_watching(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"items": _jellyfin_client.continue_watching()}
+        except JellyfinAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/jellyfin/search")
+    async def jellyfin_search(request: Request, query: str) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"items": _jellyfin_client.search(query)}
+        except JellyfinAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/jellyfin/stats")
+    async def jellyfin_library_stats(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return _jellyfin_client.library_stats()
+        except JellyfinAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/sabnzbd/queue")
+    async def sabnzbd_queue(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"queue": _sabnzbd_client.queue()}
+        except SabnzbdAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/qbittorrent/queue")
+    async def qbittorrent_queue(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"queue": _qbittorrent_client.queue()}
+        except QbittorrentAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/bazarr/missing-subtitles")
+    async def bazarr_missing_subtitles(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"missing": _bazarr_client.missing_subtitles()}
+        except BazarrAccessError as e:
             raise HTTPException(503, str(e))
 
     return router

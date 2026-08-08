@@ -136,6 +136,15 @@ PLAN_MODE_READONLY_TOOLS = {
     "radarr_history",
     "sonarr_queue",
     "sonarr_history",
+    "jellyfin_sessions",
+    "jellyfin_recently_added",
+    "jellyfin_continue_watching",
+    "jellyfin_search",
+    "jellyfin_library_stats",
+    "sabnzbd_queue",
+    "qbittorrent_queue",
+    "bazarr_missing_subtitles",
+    "prowlarr_indexer_status",
 }
 
 
