@@ -132,6 +132,10 @@ PLAN_MODE_READONLY_TOOLS = {
     "system_metrics",
     "unraid_array_status",
     "unraid_disk_health",
+    "radarr_queue",
+    "radarr_history",
+    "sonarr_queue",
+    "sonarr_history",
 }
 
 

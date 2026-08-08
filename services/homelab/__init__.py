@@ -8,10 +8,14 @@ into the host it runs on.
 
 from .docker_client import DockerHomelabClient, DockerAccessError
 from .unraid_client import UnraidClient, UnraidAccessError
+from .arr_client import RadarrClient, SonarrClient, ArrAccessError
 
 __all__ = [
     "DockerHomelabClient",
     "DockerAccessError",
     "UnraidClient",
     "UnraidAccessError",
+    "RadarrClient",
+    "SonarrClient",
+    "ArrAccessError",
 ]

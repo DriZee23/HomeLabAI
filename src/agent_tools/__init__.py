@@ -38,6 +38,7 @@ from .homelab_tools import (
     DockerContainerLogsTool, DockerInspectContainerTool, SystemMetricsTool,
 )
 from .unraid_tools import UnraidArrayStatusTool, UnraidDiskHealthTool
+from .media_tools import RadarrQueueTool, RadarrHistoryTool, SonarrQueueTool, SonarrHistoryTool
 
 TOOL_HANDLERS = {
     "bash": BashTool().execute,
@@ -75,6 +76,10 @@ TOOL_HANDLERS = {
     "system_metrics": SystemMetricsTool().execute,
     "unraid_array_status": UnraidArrayStatusTool().execute,
     "unraid_disk_health": UnraidDiskHealthTool().execute,
+    "radarr_queue": RadarrQueueTool().execute,
+    "radarr_history": RadarrHistoryTool().execute,
+    "sonarr_queue": SonarrQueueTool().execute,
+    "sonarr_history": SonarrHistoryTool().execute,
 }
 # Config/integration admin tools (manage_endpoints/mcp/webhooks/tokens/settings).
 TOOL_HANDLERS.update(ADMIN_TOOL_HANDLERS)
@@ -129,7 +134,10 @@ TOOL_TAGS = {"bash", "python", "web_search", "web_fetch", "read_file", "write_fi
              "docker_container_logs", "docker_inspect_container",
              "system_metrics",
              # Unraid array read tools.
-             "unraid_array_status", "unraid_disk_health"} | BUILTIN_EMAIL_TOOLS
+             "unraid_array_status", "unraid_disk_health",
+             # Media queue read tools (Radarr/Sonarr).
+             "radarr_queue", "radarr_history",
+             "sonarr_queue", "sonarr_history"} | BUILTIN_EMAIL_TOOLS
 
 ToolBlock = namedtuple("ToolBlock", ["tool_type", "content"])
 

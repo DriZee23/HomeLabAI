@@ -1389,6 +1389,54 @@ FUNCTION_TOOL_SCHEMAS = [
             }
         }
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "radarr_queue",
+            "description": "List Radarr's current movie download queue (title, status, size, download client, errors). Requires RADARR_URL/RADARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "radarr_history",
+            "description": "List Radarr's recent movie history (grabbed/imported/failed events with dates). Use to answer 'why didn't X download' alongside radarr_queue. Requires RADARR_URL/RADARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sonarr_queue",
+            "description": "List Sonarr's current TV episode download queue (title, status, size, download client, errors). Requires SONARR_URL/SONARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sonarr_history",
+            "description": "List Sonarr's recent TV episode history (grabbed/imported/failed events with dates). Use to answer 'why didn't X download' alongside sonarr_queue. Requires SONARR_URL/SONARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
 ]
 
 

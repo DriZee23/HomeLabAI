@@ -809,6 +809,26 @@ Get the Unraid array's state (started/stopped), disk count, and capacity (free/u
 ```unraid_disk_health
 ```
 List each disk in the Unraid array with its health status, size, and temperature. Requires the Unraid API to be configured on the server; if it isn't, explain that to the user rather than retrying or guessing.""",
+
+    "radarr_queue": """\
+```radarr_queue
+```
+List Radarr's current movie download queue (title, status, size, download client, errors). Requires RADARR_URL/RADARR_API_KEY to be configured on the server; if unavailable, explain that rather than guessing.""",
+
+    "radarr_history": """\
+```radarr_history
+```
+List Radarr's recent movie history (grabbed/imported/failed events). Use alongside `radarr_queue` to answer "why didn't X download". Requires RADARR_URL/RADARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "sonarr_queue": """\
+```sonarr_queue
+```
+List Sonarr's current TV episode download queue (title, status, size, download client, errors). Requires SONARR_URL/SONARR_API_KEY to be configured on the server; if unavailable, explain that rather than guessing.""",
+
+    "sonarr_history": """\
+```sonarr_history
+```
+List Sonarr's recent TV episode history (grabbed/imported/failed events). Use alongside `sonarr_queue` to answer "why didn't X download". Requires SONARR_URL/SONARR_API_KEY; if unavailable, explain that rather than guessing.""",
 }
 
 def get_builtin_overrides() -> dict:

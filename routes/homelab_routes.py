@@ -1,7 +1,8 @@
 # routes/homelab_routes.py
-"""Homelab routes — /api/homelab/*. Read-only Docker + system metrics data,
-mirroring the docker_*/system_metrics chat tools (src/agent_tools/homelab_tools.py)
-for direct REST/curl access and future dashboard-UI consumption.
+"""Homelab routes — /api/homelab/*. Read-only Docker/system-metrics/Unraid/
+media-queue data, mirroring the docker_*/system_metrics/unraid_*/radarr_*/
+sonarr_* chat tools (src/agent_tools/homelab_tools.py, unraid_tools.py,
+media_tools.py) for direct REST/curl access and future dashboard-UI use.
 
 Gated by require_admin like routes/diagnostics_routes.py, since container
 inspect/stats output is comparable infra-sensitive data and no UI consumes
@@ -16,6 +17,7 @@ from fastapi import APIRouter, HTTPException, Request
 from core.middleware import require_admin
 from services.homelab.docker_client import DockerHomelabClient, DockerAccessError
 from services.homelab.unraid_client import UnraidClient, UnraidAccessError
+from services.homelab.arr_client import RadarrClient, SonarrClient, ArrAccessError
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,8 @@ logger = logging.getLogger(__name__)
 # reuse rationale (docker.DockerClient is safe to share, lazily connects).
 _docker_client = DockerHomelabClient()
 _unraid_client = UnraidClient()
+_radarr_client = RadarrClient()
+_sonarr_client = SonarrClient()
 
 
 def setup_homelab_routes() -> APIRouter:
@@ -80,6 +84,38 @@ def setup_homelab_routes() -> APIRouter:
         try:
             return {"disks": _unraid_client.disk_health()}
         except UnraidAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/radarr/queue")
+    async def radarr_queue(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"queue": _radarr_client.queue()}
+        except ArrAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/radarr/history")
+    async def radarr_history(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"history": _radarr_client.history()}
+        except ArrAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/sonarr/queue")
+    async def sonarr_queue(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"queue": _sonarr_client.queue()}
+        except ArrAccessError as e:
+            raise HTTPException(503, str(e))
+
+    @router.get("/sonarr/history")
+    async def sonarr_history(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"history": _sonarr_client.history()}
+        except ArrAccessError as e:
             raise HTTPException(503, str(e))
 
     return router
