@@ -3712,19 +3712,7 @@ async def stream_agent_loop(
         _is_api_model = False
     else:
         _is_api_model = any(h in endpoint_url for h in _API_HOSTS) or _model_supports_tools
-    # Compact mode's prompt text asserts native tool/function-call schemas
-    # are being sent ("Only the tool schemas provided by the API are
-    # available... do not write tool syntax in chat") and omits fenced-block
-    # usage syntax entirely. That's only true when _is_api_model is True.
-    # _is_ollama_native/_ollama_openai_compat being True does NOT imply
-    # native tool calling is active — by default (no per-endpoint
-    # supports_tools=True override) those still force _is_api_model=False
-    # a few lines above, so OR'ing them in here previously produced a
-    # compact prompt that told the model schemas would just appear via the
-    # API while the actual request sent none and expected fenced-block
-    # syntax the prompt just told it not to use — the model had no
-    # actionable way to call ANY tool and fell back to bash for everything.
-    _compact_agent_prompt = _is_api_model
+    _compact_agent_prompt = _is_api_model or _is_ollama_native or _ollama_openai_compat
     messages, mcp_schemas = _build_system_prompt(
         messages, model, _prompt_active_document, mcp_mgr, disabled_tools,
         needs_admin=_needs_admin, relevant_tools=_relevant_tools,
