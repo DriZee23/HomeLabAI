@@ -2,7 +2,28 @@
 
 > Working notes for picking this project back up. Not part of the shipped app — read this first, then `HOMELABAI-SPEC.md` for the full spec. `PROJECT.md` is an older draft; **`HOMELABAI-SPEC.md` is the canonical spec**, not `PROJECT.md` (they disagree on whether §13's decisions are resolved — spec is right, they're resolved).
 
-Last updated: 2026-08-09, branch `homelabai`, latest commit `091223e` pushed, plus an **uncommitted arr-stack setup slice** on top (see "Off-spec: arr-stack setup tools" below) — not yet committed/pushed as of this note.
+Last updated: 2026-08-09 (evening), branch `homelabai`, latest commit `ec33968`, **pushed**. User is turning their PC off for the night — read "Resume here next" immediately below before anything else.
+
+## Resume here next: qBittorrent VPN container is hung, root cause found but not fixed
+
+The user replaced the working `binhex-qbittorrent` container with `binhex-qbittorrentvpn` (ProtonVPN via WireGuard) mid-session, wanting VPN-routed torrenting. **It never finishes starting** — the WebUI times out, and `qbittorrent-nox` never even launches (confirmed via `ps aux` inside the container: only `start.sh`/`watchdog.sh` are running, no qbittorrent process).
+
+**Root cause, fully traced and confirmed** (not a guess): the container's startup chain is `start.sh` → sources `wireguard.sh` → sources `iptable.sh` → calls `watchdog()` → `watchdog.sh` (loops every 30s) → sources `preruncheck.sh` → calls `check_vpn_incoming_port()` in `/usr/local/bin/tools.sh` (line 560), which is:
+```bash
+while [ ! -f "/tmp/getvpnport" ]
+do
+    sleep 1s
+done
+```
+This loop has **no timeout** and blocks forever. `/tmp/getvpnport` only gets written by the port-forward-assignment step, which the container's own log already showed being skipped:
+```
+[info] ProtonVPN username 'mazhar.t53@proton.me' does not contain the suffix '+pmp' and therefore is not enabled for port forwarding, skipping port forward assignment...
+```
+ProtonVPN's NAT-PMP/port-forwarding requires (a) a plan tier that supports it (Plus/Unlimited, not Free/Basic — **unconfirmed which tier this user has**), and (b) is normally requested via a `+pmp`-suffixed OpenVPN/IKEv2 username. **Unresolved question going into next session**: this container is configured for **WireGuard**, not OpenVPN — WireGuard auth is keypair-based, no username field, so it's unclear whether the `+pmp` trick even applies the same way here, or whether port-forwarding for WireGuard needs to be requested differently (e.g. regenerating the WireGuard config from ProtonVPN's dashboard with a "NAT-PMP (Port Forwarding)" checkbox, if one exists there). Was about to `grep -rn "Script started to assign incoming port"` across `/usr/local/bin/` and `/root/` inside the container to find the exact script that logs that line and see what it actually checks (probably a counterpart script, `prerunget.sh`, referenced in `preruncheck.sh`'s own header comment: *"read in values written by script /root/prerunget.sh"*) — that command was sent but the session ended before the user could run it and paste output. **Start there.**
+
+User explicitly chose "enable ProtonVPN port forwarding" over "revert to the already-working non-VPN container" when asked, so don't silently revert — but if the +pmp/WireGuard investigation dead-ends, the fallback (their other stated-acceptable option) is: remove `binhex-qbittorrentvpn`, go back to plain `binhex-qbittorrent` (the one already fully fixed and verified working this session — see below), and drop VPN-routing as a goal, or pursue it later with more research into whether this specific image/ProtonVPN-WireGuard combination supports port forwarding at all.
+
+**Practical side effect while this is unresolved**: HomeLabAI's own `.env` still has `QBITTORRENT_URL=http://192.168.178.49:8082` pointing at whichever container currently holds that port mapping — if `binhex-qbittorrentvpn` is squatting on it while hung, the `qbittorrent_queue` tool (and the new `radarr_add_download_client`/`sonarr_add_download_client` tools from this session, which read this same URL from `.env`) will likely time out too, not because of any HomeLabAI bug but because nothing is actually listening behind that port right now. Don't debug HomeLabAI-side qBittorrent tool failures without first checking `docker ps` for which qBittorrent container is actually up and healthy.
 
 ## Where things stand
 
@@ -21,16 +42,16 @@ Last updated: 2026-08-09, branch `homelabai`, latest commit `091223e` pushed, pl
 | Prowlarr | `prowlarr_indexer_status` | Implemented, **not yet tested live** |
 | Bazarr | `bazarr_missing_subtitles` | Implemented, **not yet tested live** |
 | SABnzbd | `sabnzbd_queue` | Implemented, **not yet tested live** — WebUI reachability fixed (see below), but the Usenet host/server itself still needs configuring in SABnzbd before the queue tool is meaningfully testable |
-| qBittorrent | `qbittorrent_queue` | **Verified live (commit `091223e`)** — see "qBittorrent live-verification saga" in project memory for the full story (Docker networking x3 + a real client-code bug: qBittorrent 5.2.3 returns `204`+empty body on login success, not the older docs' `200`+`"Ok."`) |
+| qBittorrent | `qbittorrent_queue` | **Was verified live (commit `091223e`)** against `binhex-qbittorrent` (non-VPN) — see "qBittorrent live-verification saga" in project memory. User then swapped to `binhex-qbittorrentvpn` mid-session, which is currently **hung and not serving anything** — see "Resume here next" at the top of this file before touching qBittorrent again. |
 | UI | "Homelab" sidebar modal, tabs: Dashboard / Server / Docker / Media | Implemented, syntax-checked only (no browser in the dev sandbox) — Dashboard/Server/Docker confirmed rendering live by the user; the **Media** tab (commit `a9b028b`, pushed) is unverified — needs the media containers actually running with their env vars set |
 
 **Phase 2 (safe write actions)** and **Phase 3 (dangerous actions + confirmation/RBAC/audit)** — not started. **Media/Storage/Logs/Settings UI surfaces** beyond the Homelab modal (per HOMELABAI-SPEC.md §7) — not started.
 
-## Off-spec: arr-stack setup tools (not in HOMELABAI-SPEC.md — built at the user's direct request, 2026-08-09)
+## Off-spec: arr-stack setup tools (not in HOMELABAI-SPEC.md — built at the user's direct request, 2026-08-09, commit `ec33968`, pushed)
 
 The user asked for the AI to perform the *initial wiring* of the *arr stack (connect qBittorrent as a download client, sync Prowlarr's indexers, add root folders) rather than day-to-day actions. **This is not in HOMELABAI-SPEC.md's tool catalog (§5) or Phase 2 at all** — Phase 2 there is scoped to day-to-day write actions on an already-wired stack (`add_movie`, `retry_download`, `pause`/`resume`, etc.). Flagged this distinction to the user directly before building; they chose to proceed with the off-spec setup tools first.
 
-**New tools** (uncommitted as of this note — verify + commit next session if not already done):
+**New tools** (pushed but **not live-tested at all yet** — the qBittorrent VPN detour above happened before this could be tried live; test this next once qBittorrent itself is sorted):
 - `radarr_add_download_client` / `sonarr_add_download_client` — connect qBittorrent as the download client. Take **no host/port/credential arguments**; those are read server-side from `QBITTORRENT_URL`/`USERNAME`/`PASSWORD` in `.env` and never passed through the model, per HOMELABAI-SPEC.md's "secrets never exposed to the model" rule (§3.5/§9). Only `category`/`use_ssl` are model-controlled.
 - `radarr_add_root_folder` / `sonarr_add_root_folder` — take a `path` argument (not a secret, has to come from the user).
 - `prowlarr_connect_radarr` / `prowlarr_connect_sonarr` — sync Prowlarr's indexers via its "Applications" feature. Same pattern: `RADARR_URL`/`API_KEY` (or Sonarr's) read server-side, only `sync_level` is model-controlled.
@@ -81,10 +102,11 @@ Plus, for any new external service integration specifically: add its env vars to
 
 ## Suggested next steps, roughly in order of value
 
-1. Have the user start the Radarr/Sonarr/Jellyfin/Prowlarr/Bazarr/SABnzbd/qBittorrent containers and set their env vars, then live-verify each tool the same way Docker/Unraid were verified — this now also verifies the new Media UI tab (see below). Expect at least one schema surprise per new external API — don't assume the code is right until it's tested against the real service.
-2. `unraid_smart_report` — the one deliberately-deferred Unraid tool. Same approach: ask the user to check the GraphQL Sandbox's Disk type fields before writing the query.
-3. ~~Extend the Homelab UI's tabs to cover the media stack~~ — done (uncommitted as of this note): added a **Media** tab to the Homelab modal (`static/js/homelab.js` `_renderMedia()`, `static/index.html`, `static/style.css` `.homelab-list-row`/`.homelab-list-primary`/`.homelab-list-secondary`). Cards: Now Playing, Jellyfin Library, Continue Watching, Recently Added, Download Queue (Radarr+Sonarr merged, tagged by service), Recent Activity (Radarr+Sonarr history merged, sorted newest-first), Indexers (Prowlarr), SABnzbd, qBittorrent, Missing Subtitles (Bazarr). Same fetch → template-string → innerHTML pattern as the existing tabs, `node --check`-clean, but **not seen rendering in a real browser** — needs the user's pull+rebuild+restart plus the media containers actually up to verify.
-4. Phase 2 (write actions) once the user wants to move past read-only.
+1. **Resolve the qBittorrentVPN hang** (see "Resume here next" at the top) — either get ProtonVPN port-forwarding actually working for this WireGuard setup, or revert to the plain `binhex-qbittorrent` container that was already fully verified working. Until this is resolved, `QBITTORRENT_URL` in `.env` may be pointing at a dead container.
+2. Once qBittorrent is sorted, **live-test the new arr-setup tools** (`radarr_add_download_client`, `sonarr_add_download_client`, `radarr_add_root_folder`, `sonarr_add_root_folder`, `prowlarr_connect_radarr`, `prowlarr_connect_sonarr`) — completely untested against real Radarr/Sonarr/Prowlarr instances. Expect at least one field-name or enum-string surprise despite the schema-driven approach; don't assume it's right until it's actually run.
+3. Continue live-verifying the rest of Phase 1's read tools (Radarr/Sonarr/Jellyfin/Prowlarr/Bazarr/SABnzbd) the same way Docker/Unraid/qBittorrent were verified — this now also verifies the Media UI tab. SABnzbd's WebUI is reachable now but its Usenet host/server still isn't configured.
+4. `unraid_smart_report` — the one deliberately-deferred Unraid tool. Same approach: ask the user to check the GraphQL Sandbox's Disk type fields before writing the query.
+5. The actual spec'd Phase 2 (day-to-day write actions: restart/start/stop containers, add_movie/add_show, retry_download, pause/resume, request_media, search_subtitles) — deferred in favor of the off-spec arr-setup tools per the user's explicit choice this session; still not started.
 
 ## Working conventions established during this build
 
