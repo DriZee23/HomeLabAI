@@ -96,6 +96,14 @@ def setup_homelab_routes() -> APIRouter:
         except UnraidAccessError as e:
             raise HTTPException(503, str(e))
 
+    @router.get("/unraid/shares")
+    async def unraid_shares(request: Request) -> Dict[str, Any]:
+        require_admin(request)
+        try:
+            return {"shares": _unraid_client.shares()}
+        except UnraidAccessError as e:
+            raise HTTPException(503, str(e))
+
     @router.get("/radarr/queue")
     async def radarr_queue(request: Request) -> Dict[str, Any]:
         require_admin(request)

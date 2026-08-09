@@ -1441,6 +1441,18 @@ FUNCTION_TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
+            "name": "unraid_shares",
+            "description": "List Unraid shares with used/free space on their storage pool and any per-share size quota. Requires the Unraid API to be configured (UNRAID_API_URL/UNRAID_API_KEY); if it isn't, explain that to the user rather than retrying.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "jellyfin_sessions",
             "description": "List active Jellyfin playback sessions (who's watching what, on which device). Requires JELLYFIN_URL/JELLYFIN_API_KEY to be configured; if not, explain that to the user rather than retrying.",
             "parameters": {"type": "object", "properties": {}, "required": []}

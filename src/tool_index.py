@@ -147,6 +147,7 @@ BUILTIN_TOOL_DESCRIPTIONS: Dict[str, str] = {
     "system_metrics": "Get approximate host-level CPU%, memory, disk usage (for the Odysseus data partition), and uptime for the homelab server. Use for 'server CPU/memory/uptime', 'how's the host doing'. Linux-only; best-effort /proc reads, not exact host figures. Use this instead of bash/free/top/uptime.",
     "unraid_array_status": "Get the Unraid array's state (started/stopped), disk count, and capacity (free/used/total). Use for 'array status', 'how much storage do I have', 'is the array running'. Requires the Unraid API to be configured on the server.",
     "unraid_disk_health": "List each disk in the Unraid array with health status, size, and temperature. Use for 'disk health', 'are my disks ok', 'disk temperatures'. Requires the Unraid API to be configured on the server.",
+    "unraid_shares": "List Unraid shares with used/free space on their storage pool and any per-share size quota. Use for 'my shares', 'share usage', 'how much space does X share have'. Requires the Unraid API to be configured on the server.",
     "radarr_queue": "List Radarr's current movie download queue: title, status, size, download client, errors. Use for 'what's downloading', 'radarr queue', 'movie download status'. Requires RADARR_URL/RADARR_API_KEY to be configured.",
     "radarr_history": "List Radarr's recent movie history (grabbed/imported/failed events). Use for 'why didn't X download', 'radarr history', 'did the movie import' alongside radarr_queue. Requires RADARR_URL/RADARR_API_KEY.",
     "sonarr_queue": "List Sonarr's current TV episode download queue: title, status, size, download client, errors. Use for 'what's downloading', 'sonarr queue', 'episode download status'. Requires SONARR_URL/SONARR_API_KEY to be configured.",
@@ -552,6 +553,9 @@ class ToolIndex:
                    "array capacity", "disk health", "disk temperature",
                    "disk temperatures", "are my disks", "array state"}):
             {"unraid_array_status", "unraid_disk_health"},
+        frozenset({"my shares", "unraid shares", "share usage",
+                   "share space", "how much space does"}):
+            {"unraid_shares"},
         # Media download queues/history — Radarr (movies) + Sonarr (TV).
         # Kept as one combined hint since users rarely specify which app;
         # both tools firing together is cheap and lets the model pick.

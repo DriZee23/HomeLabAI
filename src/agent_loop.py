@@ -830,6 +830,11 @@ List Sonarr's current TV episode download queue (title, status, size, download c
 ```
 List Sonarr's recent TV episode history (grabbed/imported/failed events). Use alongside `sonarr_queue` to answer "why didn't X download". Requires SONARR_URL/SONARR_API_KEY; if unavailable, explain that rather than guessing.""",
 
+    "unraid_shares": """\
+```unraid_shares
+```
+List Unraid shares with used/free space on their storage pool and any per-share size quota. Requires the Unraid API to be configured; if unavailable, explain that rather than guessing.""",
+
     "jellyfin_sessions": """\
 ```jellyfin_sessions
 ```

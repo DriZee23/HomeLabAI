@@ -34,10 +34,20 @@ Sandbox after Unraid's own docs turned out incomplete on several points:
      from summed disk/parity/cache sizes rather than relying on
      `capacity.kilobytes` alone.
 
-Shares and full SMART reports are intentionally NOT implemented here yet —
-Unraid's docs don't confirm those field names, and guessing would silently
-produce broken queries against a real server. Add them once checked against
-the GraphQL Sandbox at <UNRAID_API_URL minus /graphql>/graphql.
+Shares confirmed 2026-08-09 via a real server: there's a top-level `shares`
+query (sibling to `array`, not nested under it), returning `free`/`used` in
+KiB (same convention as everywhere else) — but these reflect the underlying
+STORAGE POOL, not per-share usage (every share on the same pool reports
+identical free/used; shares are logical folders, not fixed allocations).
+No separate cache_usage query was added — shares() already reports
+pool-level free/used space, so a second tool saying the same thing would
+just be redundant (and riskier to get right for multi-pool setups this
+user's box can't be used to verify against).
+
+Full SMART reports are intentionally NOT implemented here yet — SMART
+attribute data is more varied than anything confirmed so far and guessing
+would silently produce broken queries. Add it once checked against the
+GraphQL Sandbox at <UNRAID_API_URL minus /graphql>/graphql.
 """
 
 from __future__ import annotations
@@ -68,6 +78,18 @@ query {
         disks { name size status temp type }
         parities { name size status temp type }
         caches { name size status temp type }
+    }
+}
+"""
+
+_SHARES_QUERY = """
+query {
+    shares {
+        name
+        comment
+        free
+        used
+        size
     }
 }
 """
@@ -194,3 +216,21 @@ class UnraidClient:
     def disk_health(self) -> list[dict[str, Any]]:
         array = self._get_array()
         return self._extract_disks(array)
+
+    def shares(self) -> list[dict[str, Any]]:
+        data = self._query(_SHARES_QUERY)
+        shares_list = data.get("shares")
+        if shares_list is None:
+            raise UnraidAccessError("Unraid API response had no 'shares' field — schema may differ from expected.")
+        return [
+            {
+                "name": s.get("name"),
+                "comment": s.get("comment") or None,
+                # size=0 means no per-share size quota is configured (the
+                # share can grow to fill whatever's free on its pool).
+                "size_bytes": _kib_to_bytes(s.get("size")) or None,
+                "free_bytes": _kib_to_bytes(s.get("free")),
+                "used_bytes": _kib_to_bytes(s.get("used")),
+            }
+            for s in shares_list
+        ]

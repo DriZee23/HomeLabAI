@@ -1,13 +1,13 @@
 # src/agent_tools/unraid_tools.py
-"""Read-only Unraid array tools: array_status, disk_health.
+"""Read-only Unraid array tools: array_status, disk_health, shares.
 
-Both route through services.homelab.unraid_client.UnraidClient, which is
+All route through services.homelab.unraid_client.UnraidClient, which is
 gated by UNRAID_API_URL/UNRAID_API_KEY being set. When they aren't,
 UnraidAccessError carries UNRAID_ACCESS_HINT verbatim so the assistant can
 explain what's missing instead of failing opaquely.
 
-Shares, cache-pool usage, and full SMART reports are intentionally not
-covered — see services/homelab/unraid_client.py for why.
+Full SMART reports are intentionally not covered yet — see
+services/homelab/unraid_client.py for why.
 """
 
 import asyncio
@@ -70,5 +70,26 @@ class UnraidDiskHealthTool:
             temp = f"{d['temp_celsius']}°C" if d["temp_celsius"] is not None else "unknown"
             lines.append(
                 f"{d['name']} ({d['role']}): status={d['status']}, size={_fmt_bytes(d['size_bytes'])}, temp={temp}"
+            )
+        return {"output": "\n".join(lines), "exit_code": 0}
+
+
+class UnraidSharesTool:
+    async def execute(self, content: str, ctx: dict) -> dict:
+        loop = asyncio.get_running_loop()
+        try:
+            shares = await loop.run_in_executor(None, _unraid_client.shares)
+        except UnraidAccessError as e:
+            return {"error": str(e), "exit_code": 1}
+        except Exception as e:
+            return {"error": f"unraid_shares failed: {type(e).__name__}: {e}", "exit_code": 1}
+
+        if not shares:
+            return {"output": "No shares configured.", "exit_code": 0}
+        lines = []
+        for s in shares:
+            size = f", quota={_fmt_bytes(s['size_bytes'])}" if s.get("size_bytes") else ""
+            lines.append(
+                f"{s['name']}: {_fmt_bytes(s['used_bytes'])} used / {_fmt_bytes(s['free_bytes'])} free on its pool{size}"
             )
         return {"output": "\n".join(lines), "exit_code": 0}

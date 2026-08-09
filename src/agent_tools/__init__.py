@@ -37,7 +37,7 @@ from .homelab_tools import (
     DockerListContainersTool, DockerContainerStatsTool,
     DockerContainerLogsTool, DockerInspectContainerTool, SystemMetricsTool,
 )
-from .unraid_tools import UnraidArrayStatusTool, UnraidDiskHealthTool
+from .unraid_tools import UnraidArrayStatusTool, UnraidDiskHealthTool, UnraidSharesTool
 from .media_tools import RadarrQueueTool, RadarrHistoryTool, SonarrQueueTool, SonarrHistoryTool
 from .jellyfin_tools import (
     JellyfinSessionsTool, JellyfinRecentlyAddedTool, JellyfinContinueWatchingTool,
@@ -83,6 +83,7 @@ TOOL_HANDLERS = {
     "system_metrics": SystemMetricsTool().execute,
     "unraid_array_status": UnraidArrayStatusTool().execute,
     "unraid_disk_health": UnraidDiskHealthTool().execute,
+    "unraid_shares": UnraidSharesTool().execute,
     "radarr_queue": RadarrQueueTool().execute,
     "radarr_history": RadarrHistoryTool().execute,
     "sonarr_queue": SonarrQueueTool().execute,
@@ -150,7 +151,7 @@ TOOL_TAGS = {"bash", "python", "web_search", "web_fetch", "read_file", "write_fi
              "docker_container_logs", "docker_inspect_container",
              "system_metrics",
              # Unraid array read tools.
-             "unraid_array_status", "unraid_disk_health",
+             "unraid_array_status", "unraid_disk_health", "unraid_shares",
              # Media queue read tools (Radarr/Sonarr).
              "radarr_queue", "radarr_history",
              "sonarr_queue", "sonarr_history",
