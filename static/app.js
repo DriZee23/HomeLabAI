@@ -2738,6 +2738,7 @@ function initializeEventListeners() {
     'tool-compare':        '#tool-compare-btn',
     'tool-cookbook':       '#tool-cookbook-btn',
     'tool-research':       '#tool-research-btn',
+    'tool-homelab':        '#tool-homelab-btn',
     'tool-gallery':        '#tool-gallery-btn',
     'tool-library':        '#tool-library-btn',
     'tool-memory':         '#tool-memory-btn',
