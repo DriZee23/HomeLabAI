@@ -170,7 +170,10 @@ async function _renderServer() {
     html += `<div class="admin-card">
       <h2>Unraid Array</h2>
       <div class="homelab-stat-row"><span>State</span><span>${_escape(a.state)}</span></div>
-      <div class="homelab-stat-row"><span>Capacity</span><span>${_fmtBytes(a.capacity_used_bytes)} / ${_fmtBytes(a.capacity_total_bytes)}</span></div>
+      <div class="homelab-stat-row"><span>Disk slots</span><span>${a.disk_slots_used ?? '—'} used / ${a.disk_slots_total ?? '—'} total</span></div>
+      <div class="homelab-stat-row"><span>Array capacity</span><span>${_fmtBytes(a.array_capacity_used_bytes)} / ${_fmtBytes(a.array_capacity_total_bytes)}</span></div>
+      <div class="homelab-stat-row"><span>Total storage (all disks)</span><span>${_fmtBytes(a.total_storage_bytes)}</span></div>
+      <div class="homelab-note">"Array capacity" is data+parity only and excludes cache pools — it's 0 if you have no array disks assigned.</div>
     </div>`;
   } else {
     html += _errorCard('Unraid Array', arrayR.reason);

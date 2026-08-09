@@ -9,18 +9,30 @@ the same endpoint shape once enabled.
 
 Only two queries are implemented so far (array_status, disk_health). The
 query shape was corrected 2026-08-09 against a real server via the GraphQL
-Sandbox after Unraid's own docs turned out incomplete on two points:
+Sandbox after Unraid's own docs turned out incomplete on several points:
 
   1. Disks are NOT all under one `array.disks` list — Unraid splits them
      into three separate lists: `disks` (data), `parities`, `caches`.
      A cache-only array (no data/parity disks assigned) legitimately
      returns `disks: []`; that is not an error.
-  2. `size`/`free`/`used`/`total` are returned in KiB, not bytes (confirmed:
-     a real 4TB cache disk came back as size=3907018532, which is exactly
-     3907018532 KiB ~= 3.64 TiB, a real 4TB drive's actual formatted
-     capacity — not bytes, which would be ~3.9MB and obviously wrong).
-     All such fields are multiplied by 1024 before being returned from this
-     module so callers always get real bytes.
+  2. All numeric size fields (`size`/`free`/`used`/`total`) come back as
+     GraphQL strings (BigInt-safe serialization, e.g. `"3907018532"`), not
+     native numbers — `int(value)` before use, don't assume a JSON number.
+  3. `disks[].size` is in KiB, not bytes (confirmed: a real 4TB cache disk
+     returned size="3907018532", which is exactly 3907018532 KiB ~= 3.64
+     TiB, a real 4TB drive's actual formatted capacity — not bytes, which
+     would be ~3.9MB and obviously wrong).
+  4. `array.capacity` has TWO sibling sub-objects that are easy to
+     conflate: `disks { free used total }` is a DISK SLOT COUNT (e.g.
+     free=30/used=0/total=30 means "30 empty array disk slots", not any
+     byte quantity), while `kilobytes { free used total }` is the real
+     array capacity in KiB. Both are legitimately 0/tiny numbers on an
+     array with no data/parity disks assigned — that's not a bug, it's an
+     accurate reflection that Unraid's "array" concept excludes cache
+     pools. For a useful "how much storage do I have" figure on
+     cache-only setups, this module also computes a `total_storage_bytes`
+     from summed disk/parity/cache sizes rather than relying on
+     `capacity.kilobytes` alone.
 
 Shares and full SMART reports are intentionally NOT implemented here yet —
 Unraid's docs don't confirm those field names, and guessing would silently
@@ -49,7 +61,10 @@ _ARRAY_QUERY = """
 query {
     array {
         state
-        capacity { disks { free used total } }
+        capacity {
+            disks { free used total }
+            kilobytes { free used total }
+        }
         disks { name size status temp type }
         parities { name size status temp type }
         caches { name size status temp type }
@@ -60,8 +75,20 @@ query {
 _KIB = 1024
 
 
+def _to_int(value):
+    """Unraid's GraphQL API serializes numeric fields as strings (BigInt-safe).
+    Returns None for anything that isn't a valid integer."""
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _kib_to_bytes(value):
-    return value * _KIB if isinstance(value, (int, float)) else value
+    n = _to_int(value)
+    return n * _KIB if n is not None else None
 
 
 class UnraidAccessError(RuntimeError):
@@ -120,20 +147,8 @@ class UnraidClient:
             raise UnraidAccessError("Unraid API response had no 'array' field — schema may differ from expected.")
         return array
 
-    def array_status(self) -> dict[str, Any]:
-        array = self._get_array()
-        capacity = (array.get("capacity") or {}).get("disks") or {}
-        disk_count = sum(len(array.get(role) or []) for role in ("disks", "parities", "caches"))
-        return {
-            "state": array.get("state"),
-            "disk_count": disk_count,
-            "capacity_free_bytes": _kib_to_bytes(capacity.get("free")),
-            "capacity_used_bytes": _kib_to_bytes(capacity.get("used")),
-            "capacity_total_bytes": _kib_to_bytes(capacity.get("total")),
-        }
-
-    def disk_health(self) -> list[dict[str, Any]]:
-        array = self._get_array()
+    @staticmethod
+    def _extract_disks(array: dict[str, Any]) -> list[dict[str, Any]]:
         result = []
         for role in ("disks", "parities", "caches"):
             for d in array.get(role) or []:
@@ -141,7 +156,41 @@ class UnraidClient:
                     "name": d.get("name"),
                     "size_bytes": _kib_to_bytes(d.get("size")),
                     "status": d.get("status"),
-                    "temp_celsius": d.get("temp"),
+                    "temp_celsius": _to_int(d.get("temp")),
                     "role": d.get("type") or role,
                 })
         return result
+
+    def array_status(self) -> dict[str, Any]:
+        array = self._get_array()
+        capacity = array.get("capacity") or {}
+        slots = capacity.get("disks") or {}
+        kb = capacity.get("kilobytes") or {}
+        disks = self._extract_disks(array)
+
+        return {
+            "state": array.get("state"),
+            "disk_count": len(disks),
+            # Array disk-slot counts (NOT a byte quantity) — how many
+            # data/parity disk slots are configured/free/used.
+            "disk_slots_total": _to_int(slots.get("total")),
+            "disk_slots_used": _to_int(slots.get("used")),
+            "disk_slots_free": _to_int(slots.get("free")),
+            # Real array (data+parity only, excludes cache pools) capacity
+            # in bytes. Legitimately 0 on a cache-only setup.
+            "array_capacity_total_bytes": _kib_to_bytes(kb.get("total")),
+            "array_capacity_used_bytes": _kib_to_bytes(kb.get("used")),
+            "array_capacity_free_bytes": _kib_to_bytes(kb.get("free")),
+            # Sum of every attached disk/parity/cache's raw size — the
+            # generally useful "how much storage do I have" figure,
+            # especially for cache-only setups where array_capacity_* is 0.
+            # This is raw capacity, not accounting for parity overhead or
+            # how much of it is actually free.
+            "total_storage_bytes": sum(
+                d["size_bytes"] for d in disks if d.get("size_bytes") is not None
+            ) or None,
+        }
+
+    def disk_health(self) -> list[dict[str, Any]]:
+        array = self._get_array()
+        return self._extract_disks(array)

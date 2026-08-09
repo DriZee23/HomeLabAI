@@ -42,10 +42,13 @@ class UnraidArrayStatusTool:
 
         lines = [
             f"Array state: {status['state']}",
-            f"Disks in array: {status['disk_count']}",
-            f"Capacity: {_fmt_bytes(status['capacity_used_bytes'])} used / "
-            f"{_fmt_bytes(status['capacity_total_bytes'])} total "
-            f"({_fmt_bytes(status['capacity_free_bytes'])} free)",
+            f"Disks/parities/caches attached: {status['disk_count']}",
+            f"Array disk slots: {status['disk_slots_used']} used / {status['disk_slots_total']} total "
+            f"({status['disk_slots_free']} free)",
+            f"Array capacity (data+parity only, excludes cache pools): "
+            f"{_fmt_bytes(status['array_capacity_used_bytes'])} used / "
+            f"{_fmt_bytes(status['array_capacity_total_bytes'])} total",
+            f"Total raw storage across all attached disks: {_fmt_bytes(status['total_storage_bytes'])}",
         ]
         return {"output": "\n".join(lines), "exit_code": 0}
 
