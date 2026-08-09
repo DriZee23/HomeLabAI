@@ -890,6 +890,13 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.5;"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
           <span class="grow">Deep Research</span>
         </div>
+        <div class="list-item" id="tool-homelab-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.5;">
+            <rect x="4" y="3" width="16" height="6" rx="1"/><rect x="4" y="15" width="16" height="6" rx="1"/>
+            <line x1="7" y1="6" x2="7" y2="6"/><line x1="7" y1="18" x2="7" y2="18"/>
+          </svg>
+          <span class="grow">Homelab</span>
+        </div>
         <div class="list-item" id="tool-gallery-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -1383,6 +1390,26 @@
         <button class="close-btn" id="close-cookbook-modal" aria-label="Close cookbook">✖</button>
       </div>
       <div class="modal-body cookbook-body"></div>
+    </div>
+  </div>
+
+  <!-- Homelab Modal -->
+  <div id="homelab-modal" class="modal hidden">
+    <div class="modal-content" role="dialog" aria-label="Homelab" style="width: min(920px, 94vw); background: var(--bg);">
+      <div class="modal-header">
+        <h4 style="margin:0;margin-right:auto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><rect x="4" y="3" width="16" height="6" rx="1"/><rect x="4" y="15" width="16" height="6" rx="1"/></svg>Homelab</h4>
+        <button class="close-btn" id="close-homelab-modal" aria-label="Close homelab">✖</button>
+      </div>
+      <div class="homelab-tabs">
+        <button class="homelab-tab-btn active" data-homelab-tab="dashboard">Dashboard</button>
+        <button class="homelab-tab-btn" data-homelab-tab="server">Server</button>
+        <button class="homelab-tab-btn" data-homelab-tab="docker">Docker</button>
+      </div>
+      <div class="modal-body homelab-body">
+        <div class="homelab-tab-panel active" data-homelab-panel="dashboard" id="homelab-dashboard-panel"></div>
+        <div class="homelab-tab-panel" data-homelab-panel="server" id="homelab-server-panel"></div>
+        <div class="homelab-tab-panel" data-homelab-panel="docker" id="homelab-docker-panel"></div>
+      </div>
     </div>
   </div>
 

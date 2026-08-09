@@ -41130,3 +41130,136 @@ body.theme-frosted .modal {
   .compare-grid[data-cols] { grid-template-columns: 1fr !important; overflow-y: auto; }
   .compare-pane { min-height: 60dvh; }
 }
+
+/* ===== HOMELAB MODAL (Dashboard / Server / Docker tabs) ===== */
+
+.homelab-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.homelab-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  opacity: 0.6;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.homelab-tab-btn:hover {
+  opacity: 0.85;
+}
+.homelab-tab-btn.active {
+  opacity: 1;
+  border-bottom-color: var(--color-accent, var(--fg));
+}
+.homelab-body {
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+.homelab-tab-panel {
+  display: none;
+}
+.homelab-tab-panel.active {
+  display: block;
+}
+.homelab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+.homelab-stat-card h2,
+.admin-card h2 {
+  display: flex;
+  align-items: center;
+}
+.homelab-stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 13px;
+}
+.homelab-stat-row span:first-child {
+  opacity: 0.65;
+}
+.homelab-note {
+  margin-top: 8px;
+  font-size: 11px;
+  opacity: 0.55;
+  line-height: 1.4;
+}
+.homelab-empty {
+  opacity: 0.55;
+  font-size: 13px;
+  padding: 4px 0;
+}
+.homelab-error-card {
+  border-color: color-mix(in srgb, var(--color-error) 30%, var(--border));
+}
+.homelab-error-text {
+  color: var(--color-error);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.homelab-container-card {
+  cursor: default;
+}
+.homelab-container-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.homelab-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--color-muted, #888);
+}
+.homelab-status-dot.homelab-status-running {
+  background: var(--color-success);
+}
+.homelab-status-dot.homelab-status-exited {
+  background: var(--color-muted, #888);
+}
+.homelab-status-dot.homelab-status-other {
+  background: var(--color-warning);
+}
+.homelab-container-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+.homelab-container-image {
+  opacity: 0.55;
+  font-size: 12px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.homelab-container-status {
+  font-size: 12px;
+  opacity: 0.75;
+}
+.homelab-container-details {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.homelab-log-view {
+  margin-top: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--hl-bg, #1e2127);
+  color: var(--hl-fg, #9cdef2);
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

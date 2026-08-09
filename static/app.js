@@ -22,6 +22,7 @@ import memoryModule from './js/memory.js?v=20260722memoryloading1';
 import voiceRecorderModule from './js/voiceRecorder.js';
 import censorModule from './js/censor.js';
 import galleryModule from './js/gallery.js';
+import homelabModule from './js/homelab.js';
 import tasksModule from './js/tasks.js?v=20260723tasksbulkfeedback1';
 import calendarModule from './js/calendar.js';
 import notesModule from './js/notes.js';
@@ -1042,6 +1043,19 @@ function initializeEventListeners() {
       if (!Modals.toggle('gallery-modal')) {
         if (galleryModule.isGalleryOpen()) galleryModule.closeGallery();
         else galleryModule.openGallery();
+      }
+    });
+  }
+
+  // Homelab tool button
+  const toolHomelabBtn = el('tool-homelab-btn');
+  if (toolHomelabBtn) {
+    toolHomelabBtn.addEventListener('click', async () => {
+      if (!homelabModule) return;
+      const Modals = await import('./js/modalManager.js');
+      if (!Modals.toggle('homelab-modal')) {
+        if (homelabModule.isOpen()) homelabModule.close();
+        else homelabModule.open();
       }
     });
   }
