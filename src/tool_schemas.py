@@ -30,6 +30,8 @@ _REQUIRED_NATIVE_TOOL_ARGS = {
     "docker_container_logs": ("name",),
     "docker_inspect_container": ("name",),
     "jellyfin_search": ("query",),
+    "radarr_add_root_folder": ("path",),
+    "sonarr_add_root_folder": ("path",),
 }
 
 # ---------------------------------------------------------------------------
@@ -1524,6 +1526,88 @@ FUNCTION_TOOL_SCHEMAS = [
             "name": "prowlarr_indexer_status",
             "description": "List Prowlarr's configured indexers and whether each is enabled. Requires PROWLARR_URL/PROWLARR_API_KEY to be configured; if not, explain that to the user rather than retrying.",
             "parameters": {"type": "object", "properties": {}, "required": []}
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "radarr_add_download_client",
+            "description": "Connect qBittorrent to Radarr as its download client, using the qBittorrent connection details already configured in .env (QBITTORRENT_URL/USERNAME/PASSWORD) — do not ask the user for host/port/credentials, they are read server-side. Write action; explain what you're about to do before calling it. Requires RADARR_URL/RADARR_API_KEY and QBITTORRENT_URL to be configured.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string", "description": "qBittorrent category to tag Radarr's downloads with. Defaults to 'radarr'."},
+                    "use_ssl": {"type": "boolean", "description": "Whether Radarr should connect to qBittorrent over HTTPS. Defaults to false."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sonarr_add_download_client",
+            "description": "Connect qBittorrent to Sonarr as its download client, using the qBittorrent connection details already configured in .env (QBITTORRENT_URL/USERNAME/PASSWORD) — do not ask the user for host/port/credentials, they are read server-side. Write action; explain what you're about to do before calling it. Requires SONARR_URL/SONARR_API_KEY and QBITTORRENT_URL to be configured.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "category": {"type": "string", "description": "qBittorrent category to tag Sonarr's downloads with. Defaults to 'sonarr'."},
+                    "use_ssl": {"type": "boolean", "description": "Whether Sonarr should connect to qBittorrent over HTTPS. Defaults to false."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "radarr_add_root_folder",
+            "description": "Add a root folder (library path) to Radarr, e.g. /movies. Write action; explain what you're about to do before calling it. Requires RADARR_URL/RADARR_API_KEY to be configured.",
+            "parameters": {
+                "type": "object",
+                "properties": {"path": {"type": "string", "description": "Filesystem path inside the Radarr container, e.g. /movies"}},
+                "required": ["path"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "sonarr_add_root_folder",
+            "description": "Add a root folder (library path) to Sonarr, e.g. /tv. Write action; explain what you're about to do before calling it. Requires SONARR_URL/SONARR_API_KEY to be configured.",
+            "parameters": {
+                "type": "object",
+                "properties": {"path": {"type": "string", "description": "Filesystem path inside the Sonarr container, e.g. /tv"}},
+                "required": ["path"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "prowlarr_connect_radarr",
+            "description": "Sync Prowlarr's indexers to Radarr via Prowlarr's Applications feature, using the RADARR_URL/RADARR_API_KEY already configured in .env — do not ask the user for these, they are read server-side. Write action; explain what you're about to do before calling it. Requires PROWLARR_URL/PROWLARR_API_KEY and RADARR_URL/RADARR_API_KEY to be configured.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sync_level": {"type": "string", "enum": ["fullSync", "addOnly", "disabled"], "description": "How Prowlarr should sync indexers to Radarr. Defaults to 'fullSync'."}
+                },
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "prowlarr_connect_sonarr",
+            "description": "Sync Prowlarr's indexers to Sonarr via Prowlarr's Applications feature, using the SONARR_URL/SONARR_API_KEY already configured in .env — do not ask the user for these, they are read server-side. Write action; explain what you're about to do before calling it. Requires PROWLARR_URL/PROWLARR_API_KEY and SONARR_URL/SONARR_API_KEY to be configured.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sync_level": {"type": "string", "enum": ["fullSync", "addOnly", "disabled"], "description": "How Prowlarr should sync indexers to Sonarr. Defaults to 'fullSync'."}
+                },
+                "required": []
+            }
         }
     },
 ]

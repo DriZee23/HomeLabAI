@@ -161,6 +161,12 @@ BUILTIN_TOOL_DESCRIPTIONS: Dict[str, str] = {
     "qbittorrent_queue": "List qBittorrent's current torrent queue: name, state, progress, size, speed. Use for 'qbittorrent queue', 'torrent downloads', 'what's torrenting'. Requires QBITTORRENT_URL/QBITTORRENT_USERNAME/QBITTORRENT_PASSWORD.",
     "bazarr_missing_subtitles": "List movies/episodes with missing subtitles per Bazarr. Use for 'missing subtitles', 'what needs subtitles', 'bazarr wanted'. Requires BAZARR_URL/BAZARR_API_KEY.",
     "prowlarr_indexer_status": "List Prowlarr's configured indexers and whether each is enabled. Use for 'indexer status', 'my indexers', 'prowlarr'. Requires PROWLARR_URL/PROWLARR_API_KEY.",
+    "radarr_add_download_client": "Connect qBittorrent to Radarr as its download client, using connection details already configured on the server. Write action. Use for 'set up qbittorrent in radarr', 'connect radarr to qbittorrent'. Requires RADARR_URL/RADARR_API_KEY and QBITTORRENT_URL.",
+    "sonarr_add_download_client": "Connect qBittorrent to Sonarr as its download client, using connection details already configured on the server. Write action. Use for 'set up qbittorrent in sonarr', 'connect sonarr to qbittorrent'. Requires SONARR_URL/SONARR_API_KEY and QBITTORRENT_URL.",
+    "radarr_add_root_folder": "Add a root folder (library path) to Radarr, e.g. /movies. Write action. Use for 'set radarr's movie folder', 'add a radarr root folder'. Requires RADARR_URL/RADARR_API_KEY.",
+    "sonarr_add_root_folder": "Add a root folder (library path) to Sonarr, e.g. /tv. Write action. Use for 'set sonarr's tv folder', 'add a sonarr root folder'. Requires SONARR_URL/SONARR_API_KEY.",
+    "prowlarr_connect_radarr": "Sync Prowlarr's indexers to Radarr via Prowlarr's Applications feature, using connection details already configured on the server. Write action. Use for 'connect prowlarr to radarr', 'sync indexers to radarr'. Requires PROWLARR_URL/PROWLARR_API_KEY and RADARR_URL/RADARR_API_KEY.",
+    "prowlarr_connect_sonarr": "Sync Prowlarr's indexers to Sonarr via Prowlarr's Applications feature, using connection details already configured on the server. Write action. Use for 'connect prowlarr to sonarr', 'sync indexers to sonarr'. Requires PROWLARR_URL/PROWLARR_API_KEY and SONARR_URL/SONARR_API_KEY.",
 }
 
 
@@ -564,6 +570,14 @@ class ToolIndex:
                    "download history", "movie download", "episode download",
                    "did it download", "is it downloading"}):
             {"radarr_queue", "radarr_history", "sonarr_queue", "sonarr_history"},
+        frozenset({"set up qbittorrent", "connect qbittorrent",
+                   "download client", "root folder", "movie folder",
+                   "tv folder", "connect prowlarr", "sync indexers",
+                   "set up radarr", "set up sonarr", "arr setup",
+                   "wire up radarr", "wire up sonarr"}):
+            {"radarr_add_download_client", "sonarr_add_download_client",
+             "radarr_add_root_folder", "sonarr_add_root_folder",
+             "prowlarr_connect_radarr", "prowlarr_connect_sonarr"},
         frozenset({"jellyfin", "who's watching", "whos watching",
                    "continue watching", "recently added", "my library",
                    "media library", "what's playing", "whats playing"}):

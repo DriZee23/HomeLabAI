@@ -880,6 +880,42 @@ List movies/episodes with missing subtitles per Bazarr. Requires BAZARR_URL/BAZA
 ```prowlarr_indexer_status
 ```
 List Prowlarr's configured indexers and whether each is enabled. Requires PROWLARR_URL/PROWLARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "radarr_add_download_client": """\
+```radarr_add_download_client
+{"category": "<optional, defaults to 'radarr'>", "use_ssl": false}
+```
+Connect qBittorrent to Radarr as its download client, using the qBittorrent connection details already configured on the server (QBITTORRENT_URL/USERNAME/PASSWORD) — never ask the user for host/port/credentials, they are read server-side, not passed here. Write action; explain what you're about to do before calling it. Requires RADARR_URL/RADARR_API_KEY and QBITTORRENT_URL to be configured; if unavailable, explain that rather than guessing.""",
+
+    "sonarr_add_download_client": """\
+```sonarr_add_download_client
+{"category": "<optional, defaults to 'sonarr'>", "use_ssl": false}
+```
+Connect qBittorrent to Sonarr as its download client, using the qBittorrent connection details already configured on the server (QBITTORRENT_URL/USERNAME/PASSWORD) — never ask the user for host/port/credentials, they are read server-side, not passed here. Write action; explain what you're about to do before calling it. Requires SONARR_URL/SONARR_API_KEY and QBITTORRENT_URL to be configured; if unavailable, explain that rather than guessing.""",
+
+    "radarr_add_root_folder": """\
+```radarr_add_root_folder
+{"path": "<filesystem path inside the Radarr container, e.g. /movies>"}
+```
+Add a root folder (library path) to Radarr. Write action; explain what you're about to do before calling it. Requires RADARR_URL/RADARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "sonarr_add_root_folder": """\
+```sonarr_add_root_folder
+{"path": "<filesystem path inside the Sonarr container, e.g. /tv>"}
+```
+Add a root folder (library path) to Sonarr. Write action; explain what you're about to do before calling it. Requires SONARR_URL/SONARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "prowlarr_connect_radarr": """\
+```prowlarr_connect_radarr
+{"sync_level": "<optional: fullSync|addOnly|disabled, defaults to fullSync>"}
+```
+Sync Prowlarr's indexers to Radarr via Prowlarr's Applications feature, using the RADARR_URL/RADARR_API_KEY already configured on the server — never ask the user for these, they are read server-side, not passed here. Write action; explain what you're about to do before calling it. Requires PROWLARR_URL/PROWLARR_API_KEY and RADARR_URL/RADARR_API_KEY; if unavailable, explain that rather than guessing.""",
+
+    "prowlarr_connect_sonarr": """\
+```prowlarr_connect_sonarr
+{"sync_level": "<optional: fullSync|addOnly|disabled, defaults to fullSync>"}
+```
+Sync Prowlarr's indexers to Sonarr via Prowlarr's Applications feature, using the SONARR_URL/SONARR_API_KEY already configured on the server — never ask the user for these, they are read server-side, not passed here. Write action; explain what you're about to do before calling it. Requires PROWLARR_URL/PROWLARR_API_KEY and SONARR_URL/SONARR_API_KEY; if unavailable, explain that rather than guessing.""",
 }
 
 def get_builtin_overrides() -> dict:

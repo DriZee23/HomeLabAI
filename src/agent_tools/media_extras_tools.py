@@ -1,10 +1,14 @@
 # src/agent_tools/media_extras_tools.py
-"""Read-only tools for the smaller pieces of the media stack: SABnzbd/
-qBittorrent download queues, Bazarr missing subtitles, Prowlarr indexer
-status. Each gated by its own service's config env vars.
+"""Tools for the smaller pieces of the media stack: SABnzbd/qBittorrent
+download queues, Bazarr missing subtitles, Prowlarr indexer status (all
+read-only), plus Prowlarr's Radarr/Sonarr application sync (write — see
+ProwlarrConnectRadarrTool/ProwlarrConnectSonarrTool). Each gated by its own
+service's config env vars.
 """
 
 import asyncio
+import json
+import os
 
 from services.homelab.sabnzbd_client import SabnzbdClient, SabnzbdAccessError
 from services.homelab.qbittorrent_client import QbittorrentClient, QbittorrentAccessError
@@ -105,3 +109,69 @@ class ProwlarrIndexerStatusTool:
             for i in indexers
         ]
         return {"output": "\n".join(lines), "exit_code": 0}
+
+
+def _parse_json(content: str) -> dict:
+    raw = (content or "").strip()
+    if raw.startswith("{"):
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+    return {}
+
+
+class ProwlarrConnectRadarrTool:
+    async def execute(self, content: str, ctx: dict) -> dict:
+        sync_level = (_parse_json(content).get("sync_level") or "fullSync").strip()
+        radarr_url = os.getenv("RADARR_URL")
+        radarr_api_key = os.getenv("RADARR_API_KEY")
+        if not radarr_url or not radarr_api_key:
+            return {
+                "error": "RADARR_URL/RADARR_API_KEY aren't set in .env, so Prowlarr has nothing to connect to.",
+                "exit_code": 1,
+            }
+        loop = asyncio.get_running_loop()
+        try:
+            result = await loop.run_in_executor(
+                None,
+                lambda: _prowlarr_client.connect_application("Radarr", radarr_url, radarr_api_key, sync_level),
+            )
+        except ArrAccessError as e:
+            return {"error": str(e), "exit_code": 1}
+        except Exception as e:
+            return {"error": f"prowlarr_connect_radarr failed: {type(e).__name__}: {e}", "exit_code": 1}
+        return {
+            "output": f"Connected Prowlarr to Radarr (id={result['id']}, sync_level={result['sync_level']}). "
+            "Prowlarr's indexers will now sync to Radarr.",
+            "exit_code": 0,
+        }
+
+
+class ProwlarrConnectSonarrTool:
+    async def execute(self, content: str, ctx: dict) -> dict:
+        sync_level = (_parse_json(content).get("sync_level") or "fullSync").strip()
+        sonarr_url = os.getenv("SONARR_URL")
+        sonarr_api_key = os.getenv("SONARR_API_KEY")
+        if not sonarr_url or not sonarr_api_key:
+            return {
+                "error": "SONARR_URL/SONARR_API_KEY aren't set in .env, so Prowlarr has nothing to connect to.",
+                "exit_code": 1,
+            }
+        loop = asyncio.get_running_loop()
+        try:
+            result = await loop.run_in_executor(
+                None,
+                lambda: _prowlarr_client.connect_application("Sonarr", sonarr_url, sonarr_api_key, sync_level),
+            )
+        except ArrAccessError as e:
+            return {"error": str(e), "exit_code": 1}
+        except Exception as e:
+            return {"error": f"prowlarr_connect_sonarr failed: {type(e).__name__}: {e}", "exit_code": 1}
+        return {
+            "output": f"Connected Prowlarr to Sonarr (id={result['id']}, sync_level={result['sync_level']}). "
+            "Prowlarr's indexers will now sync to Sonarr.",
+            "exit_code": 0,
+        }

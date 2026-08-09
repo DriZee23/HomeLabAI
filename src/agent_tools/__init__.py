@@ -45,6 +45,11 @@ from .jellyfin_tools import (
 )
 from .media_extras_tools import (
     SabnzbdQueueTool, QbittorrentQueueTool, BazarrMissingSubtitlesTool, ProwlarrIndexerStatusTool,
+    ProwlarrConnectRadarrTool, ProwlarrConnectSonarrTool,
+)
+from .arr_setup_tools import (
+    RadarrAddDownloadClientTool, SonarrAddDownloadClientTool,
+    RadarrAddRootFolderTool, SonarrAddRootFolderTool,
 )
 
 TOOL_HANDLERS = {
@@ -97,6 +102,12 @@ TOOL_HANDLERS = {
     "qbittorrent_queue": QbittorrentQueueTool().execute,
     "bazarr_missing_subtitles": BazarrMissingSubtitlesTool().execute,
     "prowlarr_indexer_status": ProwlarrIndexerStatusTool().execute,
+    "prowlarr_connect_radarr": ProwlarrConnectRadarrTool().execute,
+    "prowlarr_connect_sonarr": ProwlarrConnectSonarrTool().execute,
+    "radarr_add_download_client": RadarrAddDownloadClientTool().execute,
+    "sonarr_add_download_client": SonarrAddDownloadClientTool().execute,
+    "radarr_add_root_folder": RadarrAddRootFolderTool().execute,
+    "sonarr_add_root_folder": SonarrAddRootFolderTool().execute,
 }
 # Config/integration admin tools (manage_endpoints/mcp/webhooks/tokens/settings).
 TOOL_HANDLERS.update(ADMIN_TOOL_HANDLERS)
@@ -160,7 +171,12 @@ TOOL_TAGS = {"bash", "python", "web_search", "web_fetch", "read_file", "write_fi
              "jellyfin_continue_watching", "jellyfin_search",
              "jellyfin_library_stats", "sabnzbd_queue",
              "qbittorrent_queue", "bazarr_missing_subtitles",
-             "prowlarr_indexer_status"} | BUILTIN_EMAIL_TOOLS
+             "prowlarr_indexer_status",
+             # *arr-stack setup/write tools (connect qBittorrent as a
+             # download client, sync Prowlarr's indexers, add root folders).
+             "prowlarr_connect_radarr", "prowlarr_connect_sonarr",
+             "radarr_add_download_client", "sonarr_add_download_client",
+             "radarr_add_root_folder", "sonarr_add_root_folder"} | BUILTIN_EMAIL_TOOLS
 
 ToolBlock = namedtuple("ToolBlock", ["tool_type", "content"])
 
