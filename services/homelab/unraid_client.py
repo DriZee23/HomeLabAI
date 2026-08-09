@@ -7,23 +7,25 @@ served at /graphql on the same host as the web UI, authenticated via an
 plugin instead — this client doesn't distinguish the two, since both expose
 the same endpoint shape once enabled.
 
-Only two queries are implemented so far (array_status, disk_health), using
-the query shape confirmed in Unraid's own docs
-(https://docs.unraid.net/API/how-to-use-the-api/):
+Only two queries are implemented so far (array_status, disk_health). The
+query shape was corrected 2026-08-09 against a real server via the GraphQL
+Sandbox after Unraid's own docs turned out incomplete on two points:
 
-    query {
-        array {
-            state
-            capacity { disks { free used total } }
-            disks { name size status temp }
-        }
-    }
+  1. Disks are NOT all under one `array.disks` list — Unraid splits them
+     into three separate lists: `disks` (data), `parities`, `caches`.
+     A cache-only array (no data/parity disks assigned) legitimately
+     returns `disks: []`; that is not an error.
+  2. `size`/`free`/`used`/`total` are returned in KiB, not bytes (confirmed:
+     a real 4TB cache disk came back as size=3907018532, which is exactly
+     3907018532 KiB ~= 3.64 TiB, a real 4TB drive's actual formatted
+     capacity — not bytes, which would be ~3.9MB and obviously wrong).
+     All such fields are multiplied by 1024 before being returned from this
+     module so callers always get real bytes.
 
-Shares, cache-pool-specific usage, and full SMART reports are intentionally
-NOT implemented here yet — Unraid's docs don't confirm those field names,
-and guessing would silently produce broken queries against a real server.
-Add them once the API is live and the actual schema can be checked (e.g. via
-the GraphQL Sandbox at <UNRAID_API_URL minus /graphql>/graphql).
+Shares and full SMART reports are intentionally NOT implemented here yet —
+Unraid's docs don't confirm those field names, and guessing would silently
+produce broken queries against a real server. Add them once checked against
+the GraphQL Sandbox at <UNRAID_API_URL minus /graphql>/graphql.
 """
 
 from __future__ import annotations
@@ -48,10 +50,18 @@ query {
     array {
         state
         capacity { disks { free used total } }
-        disks { name size status temp }
+        disks { name size status temp type }
+        parities { name size status temp type }
+        caches { name size status temp type }
     }
 }
 """
+
+_KIB = 1024
+
+
+def _kib_to_bytes(value):
+    return value * _KIB if isinstance(value, (int, float)) else value
 
 
 class UnraidAccessError(RuntimeError):
@@ -113,22 +123,25 @@ class UnraidClient:
     def array_status(self) -> dict[str, Any]:
         array = self._get_array()
         capacity = (array.get("capacity") or {}).get("disks") or {}
+        disk_count = sum(len(array.get(role) or []) for role in ("disks", "parities", "caches"))
         return {
             "state": array.get("state"),
-            "disk_count": len(array.get("disks") or []),
-            "capacity_free_bytes": capacity.get("free"),
-            "capacity_used_bytes": capacity.get("used"),
-            "capacity_total_bytes": capacity.get("total"),
+            "disk_count": disk_count,
+            "capacity_free_bytes": _kib_to_bytes(capacity.get("free")),
+            "capacity_used_bytes": _kib_to_bytes(capacity.get("used")),
+            "capacity_total_bytes": _kib_to_bytes(capacity.get("total")),
         }
 
     def disk_health(self) -> list[dict[str, Any]]:
         array = self._get_array()
-        return [
-            {
-                "name": d.get("name"),
-                "size_bytes": d.get("size"),
-                "status": d.get("status"),
-                "temp_celsius": d.get("temp"),
-            }
-            for d in (array.get("disks") or [])
-        ]
+        result = []
+        for role in ("disks", "parities", "caches"):
+            for d in array.get(role) or []:
+                result.append({
+                    "name": d.get("name"),
+                    "size_bytes": _kib_to_bytes(d.get("size")),
+                    "status": d.get("status"),
+                    "temp_celsius": d.get("temp"),
+                    "role": d.get("type") or role,
+                })
+        return result

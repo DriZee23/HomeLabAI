@@ -181,7 +181,7 @@ async function _renderServer() {
     const rows = disks
       .map(
         (d) =>
-          `<div class="homelab-stat-row"><span>${_escape(d.name)}</span><span>${_escape(d.status)} — ${_fmtBytes(d.size_bytes)}${d.temp_celsius !== null && d.temp_celsius !== undefined ? ` — ${d.temp_celsius}°C` : ''}</span></div>`
+          `<div class="homelab-stat-row"><span>${_escape(d.name)} <span class="homelab-note" style="display:inline">(${_escape(d.role)})</span></span><span>${_escape(d.status)} — ${_fmtBytes(d.size_bytes)}${d.temp_celsius !== null && d.temp_celsius !== undefined ? ` — ${d.temp_celsius}°C` : ''}</span></div>`
       )
       .join('');
     html += `<div class="admin-card"><h2>Disk Health</h2>${rows || '<div class="homelab-empty">No disks reported.</div>'}</div>`;

@@ -65,5 +65,7 @@ class UnraidDiskHealthTool:
         lines = []
         for d in disks:
             temp = f"{d['temp_celsius']}°C" if d["temp_celsius"] is not None else "unknown"
-            lines.append(f"{d['name']}: status={d['status']}, size={_fmt_bytes(d['size_bytes'])}, temp={temp}")
+            lines.append(
+                f"{d['name']} ({d['role']}): status={d['status']}, size={_fmt_bytes(d['size_bytes'])}, temp={temp}"
+            )
         return {"output": "\n".join(lines), "exit_code": 0}
