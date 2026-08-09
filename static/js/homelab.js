@@ -1,8 +1,9 @@
 // static/js/homelab.js
-// Homelab modal: Dashboard / Server / Docker tabs, backed by /api/homelab/*
-// (routes/homelab_routes.py). Follows the fetch -> template-string ->
-// innerHTML pattern used elsewhere in this codebase (see admin.js's log
-// viewer), with polling that self-cancels once the modal is hidden.
+// Homelab modal: Dashboard / Server / Docker / Media tabs, backed by
+// /api/homelab/* (routes/homelab_routes.py). Follows the fetch ->
+// template-string -> innerHTML pattern used elsewhere in this codebase (see
+// admin.js's log viewer), with polling that self-cancels once the modal is
+// hidden.
 
 import { makeWindowDraggable } from './windowDrag.js';
 
@@ -274,12 +275,218 @@ async function _loadContainerDetails(name) {
   }
 }
 
+// ── Media tab ──
+
+function _listCard(title, items, primaryFn, secondaryFn, emptyText, limit = 6) {
+  if (!items.length) {
+    return `<div class="admin-card"><h2>${_escape(title)}</h2><div class="homelab-empty">${_escape(emptyText)}</div></div>`;
+  }
+  const rows = items
+    .slice(0, limit)
+    .map(
+      (it) =>
+        `<div class="homelab-list-row"><span class="homelab-list-primary">${primaryFn(it)}</span><span class="homelab-list-secondary">${secondaryFn ? secondaryFn(it) : ''}</span></div>`
+    )
+    .join('');
+  const more = items.length > limit ? `<div class="homelab-note">+${items.length - limit} more</div>` : '';
+  return `<div class="admin-card"><h2>${_escape(title)}</h2>${rows}${more}</div>`;
+}
+
+function _unwrap(result, key) {
+  return result.status === 'fulfilled' ? (result.value && result.value[key]) || [] : null;
+}
+
+async function _renderMedia() {
+  const panel = _el('homelab-media-panel');
+  if (!panel) return;
+
+  const [
+    sessionsR,
+    recentR,
+    continueR,
+    statsR,
+    radarrQR,
+    sonarrQR,
+    radarrHR,
+    sonarrHR,
+    prowlarrR,
+    sabR,
+    qbitR,
+    bazarrR,
+  ] = await Promise.allSettled([
+    _fetchJson('/jellyfin/sessions'),
+    _fetchJson('/jellyfin/recently-added'),
+    _fetchJson('/jellyfin/continue-watching'),
+    _fetchJson('/jellyfin/stats'),
+    _fetchJson('/radarr/queue'),
+    _fetchJson('/sonarr/queue'),
+    _fetchJson('/radarr/history'),
+    _fetchJson('/sonarr/history'),
+    _fetchJson('/prowlarr/indexers'),
+    _fetchJson('/sabnzbd/queue'),
+    _fetchJson('/qbittorrent/queue'),
+    _fetchJson('/bazarr/missing-subtitles'),
+  ]);
+
+  let html = '<div class="homelab-grid">';
+
+  // Now Playing
+  if (sessionsR.status === 'fulfilled') {
+    const sessions = ((sessionsR.value && sessionsR.value.sessions) || []).filter((s) => s.playing);
+    html += _listCard(
+      'Now Playing',
+      sessions,
+      (s) => `${_escape(s.playing)}`,
+      (s) => `${_escape(s.user || 'unknown')} — ${_escape(s.device || s.client || '')}`,
+      'Nothing playing right now.'
+    );
+  } else {
+    html += _errorCard('Now Playing', sessionsR.reason);
+  }
+
+  // Jellyfin library stats
+  if (statsR.status === 'fulfilled') {
+    const s = statsR.value || {};
+    html += `<div class="admin-card">
+      <h2>Jellyfin Library</h2>
+      <div class="homelab-stat-row"><span>Movies</span><span>${s.movie_count ?? '—'}</span></div>
+      <div class="homelab-stat-row"><span>Series</span><span>${s.series_count ?? '—'}</span></div>
+      <div class="homelab-stat-row"><span>Episodes</span><span>${s.episode_count ?? '—'}</span></div>
+    </div>`;
+  } else {
+    html += _errorCard('Jellyfin Library', statsR.reason);
+  }
+
+  // Continue watching
+  if (continueR.status === 'fulfilled') {
+    const items = (continueR.value && continueR.value.items) || [];
+    html += _listCard(
+      'Continue Watching',
+      items,
+      (i) => `${_escape(i.series ? `${i.series} — ${i.name}` : i.name)}`,
+      (i) => `${i.progress_percent ?? 0}%`,
+      'Nothing in progress.'
+    );
+  } else {
+    html += _errorCard('Continue Watching', continueR.reason);
+  }
+
+  // Recently added
+  if (recentR.status === 'fulfilled') {
+    const items = (recentR.value && recentR.value.items) || [];
+    html += _listCard(
+      'Recently Added',
+      items,
+      (i) => `${_escape(i.name)}`,
+      (i) => `${_escape(i.type || '')}`,
+      'Nothing added recently.'
+    );
+  } else {
+    html += _errorCard('Recently Added', recentR.reason);
+  }
+
+  // Download queue — merged Radarr + Sonarr
+  const queueItems = [
+    ...(_unwrap(radarrQR, 'queue') || []).map((q) => ({ ...q, service: 'Radarr' })),
+    ...(_unwrap(sonarrQR, 'queue') || []).map((q) => ({ ...q, service: 'Sonarr' })),
+  ];
+  if (radarrQR.status === 'fulfilled' || sonarrQR.status === 'fulfilled') {
+    html += _listCard(
+      'Download Queue',
+      queueItems,
+      (q) => `${_escape(q.title || 'unknown')}`,
+      (q) => `${_escape(q.service)} — ${_escape(q.status || '')}`,
+      'Queue is empty.'
+    );
+  } else {
+    html += _errorCard('Download Queue', radarrQR.reason || sonarrQR.reason);
+  }
+
+  // Recent activity — merged Radarr + Sonarr history, newest first
+  const historyItems = [
+    ...(_unwrap(radarrHR, 'history') || []).map((h) => ({ ...h, service: 'Radarr' })),
+    ...(_unwrap(sonarrHR, 'history') || []).map((h) => ({ ...h, service: 'Sonarr' })),
+  ].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  if (radarrHR.status === 'fulfilled' || sonarrHR.status === 'fulfilled') {
+    html += _listCard(
+      'Recent Activity',
+      historyItems,
+      (h) => `${_escape(h.title || 'unknown')}`,
+      (h) => `${_escape(h.service)} — ${_escape(h.event_type || '')}`,
+      'No recent activity.',
+      8
+    );
+  } else {
+    html += _errorCard('Recent Activity', radarrHR.reason || sonarrHR.reason);
+  }
+
+  // Prowlarr indexers
+  if (prowlarrR.status === 'fulfilled') {
+    const items = (prowlarrR.value && prowlarrR.value.indexers) || [];
+    html += _listCard(
+      'Indexers',
+      items,
+      (i) => `${_escape(i.name)}`,
+      (i) => `${i.enabled ? 'enabled' : 'disabled'} — priority ${i.priority ?? '—'}`,
+      'No indexers configured.'
+    );
+  } else {
+    html += _errorCard('Indexers', prowlarrR.reason);
+  }
+
+  // SABnzbd queue
+  if (sabR.status === 'fulfilled') {
+    const items = (sabR.value && sabR.value.queue) || [];
+    html += _listCard(
+      'SABnzbd',
+      items,
+      (s) => `${_escape(s.name || 'unknown')}`,
+      (s) => `${_escape(s.status || '')} — ${s.percentage ?? 0}%`,
+      'Queue is empty.'
+    );
+  } else {
+    html += _errorCard('SABnzbd', sabR.reason);
+  }
+
+  // qBittorrent queue
+  if (qbitR.status === 'fulfilled') {
+    const items = (qbitR.value && qbitR.value.queue) || [];
+    html += _listCard(
+      'qBittorrent',
+      items,
+      (t) => `${_escape(t.name || 'unknown')}`,
+      (t) => `${_escape(t.state || '')} — ${t.progress_percent ?? 0}%`,
+      'No torrents.'
+    );
+  } else {
+    html += _errorCard('qBittorrent', qbitR.reason);
+  }
+
+  // Bazarr missing subtitles
+  if (bazarrR.status === 'fulfilled') {
+    const items = (bazarrR.value && bazarrR.value.missing) || [];
+    html += _listCard(
+      'Missing Subtitles',
+      items,
+      (m) => `${_escape(m.title || 'unknown')}`,
+      (m) => `${_escape(m.type || '')} — ${(m.missing_languages || []).length} lang(s)`,
+      'Nothing missing.'
+    );
+  } else {
+    html += _errorCard('Missing Subtitles', bazarrR.reason);
+  }
+
+  html += '</div>';
+  panel.innerHTML = html;
+}
+
 // ── Tabs, polling, open/close ──
 
 function _loadActiveTab() {
   if (_activeTab === 'dashboard') _renderDashboard();
   else if (_activeTab === 'server') _renderServer();
   else if (_activeTab === 'docker') _renderDocker();
+  else if (_activeTab === 'media') _renderMedia();
 }
 
 function _switchTab(tab) {

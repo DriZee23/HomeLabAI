@@ -41263,3 +41263,27 @@ body.theme-frosted .modal {
   white-space: pre-wrap;
   word-break: break-all;
 }
+.homelab-list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--border);
+}
+.homelab-list-row:last-of-type {
+  border-bottom: none;
+}
+.homelab-list-primary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.homelab-list-secondary {
+  opacity: 0.55;
+  font-size: 11.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
