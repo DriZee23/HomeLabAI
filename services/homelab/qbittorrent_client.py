@@ -37,11 +37,22 @@ class QbittorrentClient:
                 headers={"Referer": self._base_url},
             )
             resp.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            # Confirmed live against qBittorrent 5.2.3: a rejected login is a
+            # proper 401, not the older WebUI API v2 docs' 200 + body "Fails.".
+            raise QbittorrentAccessError(
+                "qBittorrent login rejected — check QBITTORRENT_USERNAME/PASSWORD."
+            ) from exc
         except httpx.RequestError as exc:
             raise QbittorrentAccessError(
                 f"Could not reach qBittorrent at {self._base_url}: {type(exc).__name__}: {exc}"
             ) from exc
-        if resp.text.strip() != "Ok.":
+        # A successful login on 5.2.3 is 204 No Content (empty body, auth
+        # conveyed via the Set-Cookie header) rather than the older docs'
+        # 200 + literal body "Ok." — treat an empty body as success too, and
+        # only reject a non-empty body that isn't "Ok." (legacy "Fails.").
+        body = resp.text.strip()
+        if body and body != "Ok.":
             raise QbittorrentAccessError("qBittorrent login rejected — check QBITTORRENT_USERNAME/PASSWORD.")
         self._logged_in = True
 
