@@ -4,6 +4,8 @@
 // innerHTML pattern used elsewhere in this codebase (see admin.js's log
 // viewer), with polling that self-cancels once the modal is hidden.
 
+import { makeWindowDraggable } from './windowDrag.js';
+
 const API = '/api/homelab';
 
 let _isOpen = false;
@@ -315,6 +317,12 @@ function _init() {
   });
   const closeBtn = _el('close-homelab-modal');
   if (closeBtn) closeBtn.addEventListener('click', close);
+
+  // Same pattern as gallery.js/cookbook.js/etc — drag the window by its header.
+  const modal = _el('homelab-modal');
+  const content = modal && modal.querySelector('.modal-content');
+  const header = content && content.querySelector('.modal-header');
+  if (modal && content && header) makeWindowDraggable(modal, { content, header });
 }
 
 function open() {
